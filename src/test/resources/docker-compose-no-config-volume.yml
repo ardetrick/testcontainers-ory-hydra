@@ -1,0 +1,36 @@
+version: "3.7"
+services:
+  hydra:
+    image: oryd/hydra:v2.1.2
+    user: root
+    ports:
+      - 4444:4444
+      - 4445:4445
+    command: serve all --dev
+    volumes:
+      - type: volume
+        source: hydra-sqlite
+        target: /var/lib/sqlite
+        read_only: false
+    environment:
+      - URLS_LOGIN=${URLS_LOGIN:-http://localhost:8080/login}
+      - URLS_CONSENT=${URLS_CONSENT:-http://localhost:8080/consent}
+      - URLS_SELF_ISSUER=${URLS_SELF_ISSUER:-http://localhost:4444}
+      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true
+    restart: unless-stopped
+    depends_on:
+      - migrate
+  migrate:
+    image: oryd/hydra:v2.1.2
+    user: root
+    environment:
+      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true
+    command: migrate sql -e --yes
+    volumes:
+      - type: volume
+        source: hydra-sqlite
+        target: /var/lib/sqlite
+        read_only: false
+    restart: on-failure
+volumes:
+  hydra-sqlite:
