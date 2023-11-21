@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    api(platform("org.testcontainers:testcontainers-bom:1.19.1"))
+    api(platform("org.testcontainers:testcontainers-bom:1.19.2"))
     api("org.testcontainers:testcontainers")
     api("org.testcontainers:junit-jupiter")
 
