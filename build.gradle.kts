@@ -17,7 +17,7 @@ dependencies {
     api("org.testcontainers:testcontainers")
     api("org.testcontainers:junit-jupiter")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.1"))
+    testImplementation(platform("org.junit:junit-bom:5.10.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.25.2")
