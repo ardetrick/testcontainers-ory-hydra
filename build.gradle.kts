@@ -13,11 +13,11 @@ repositories {
 }
 
 dependencies {
-    api(platform("org.testcontainers:testcontainers-bom:1.20.0"))
+    api(platform("org.testcontainers:testcontainers-bom:1.20.1"))
     api("org.testcontainers:testcontainers")
     api("org.testcontainers:junit-jupiter")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.3"))
+    testImplementation(platform("org.junit:junit-bom:5.11.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.26.3")
