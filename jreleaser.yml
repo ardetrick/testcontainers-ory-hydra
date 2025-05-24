@@ -1,0 +1,28 @@
+project:
+  name: testcontainers-ory-hydra
+  version: {{projectVersion}}
+  description: Testcontainers Ory Hydra integration
+  authors:
+    - Alex Detrick
+
+release:
+  github:
+    owner: ardetrick
+    name: testcontainers-ory-hydra
+    tagName: v{{projectVersion}}
+    releaseName: Release {{projectVersion}}
+    draft: true
+
+signing:
+  active: ALWAYS
+  armored: true
+
+deploy:
+  maven:
+    mavenCentral:
+      sonatype:
+        authorization: BASIC
+        active: ALWAYS
+        url: https://central.sonatype.com/api/v1/publisher
+        stagingRepositories:
+          - build/staging-deploy
