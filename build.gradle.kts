@@ -1,12 +1,12 @@
 plugins {
     `maven-publish`
     `java-library`
-    signing
     id("io.freefair.lombok") version "8.13.1"
+    id("org.jreleaser") version "1.18.0"
 }
 
 group = "com.ardetrick.testcontainers"
-version = "0.0.1"
+version = "0.0.3-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -76,19 +76,11 @@ configure<PublishingExtension> {
     }
     repositories {
         maven {
-            name = "OSSRH"
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-
-            credentials {
-                username = project.findProperty("ossrhUsername") as String?
-                password = project.findProperty("ossrhPassword") as String?
-            }
+            url = layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
         }
     }
 }
 
-signing {
-    configure<SigningExtension> {
-        sign(publishing.publications["maven"])
-    }
+jreleaser {
+    configFile.set(file("jreleaser.yml"))
 }
