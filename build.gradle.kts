@@ -1,7 +1,7 @@
 plugins {
     `maven-publish`
     `java-library`
-    id("io.freefair.lombok") version "8.13.1"
+    id("io.freefair.lombok") version "8.14"
     id("org.jreleaser") version "1.18.0"
 }
 
@@ -13,11 +13,11 @@ repositories {
 }
 
 dependencies {
-    api(platform("org.testcontainers:testcontainers-bom:1.21.1"))
+    api(platform("org.testcontainers:testcontainers-bom:1.21.2"))
     api("org.testcontainers:testcontainers")
     api("org.testcontainers:junit-jupiter")
 
-    testImplementation(platform("org.junit:junit-bom:5.13.0"))
+    testImplementation(platform("org.junit:junit-bom:5.13.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.27.3")
