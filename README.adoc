@@ -5,7 +5,7 @@ The `OryHydraDockerComposeContainer` is a Testcontainer extension designed for t
 == Prerequisites
 
 * Docker installed and running.
-* Java JDK 8 or later.
+* Java JDK 21 or later.
 
 == Features
 
