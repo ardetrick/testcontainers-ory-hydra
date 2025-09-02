@@ -2,7 +2,7 @@ plugins {
     `maven-publish`
     `java-library`
     id("io.freefair.lombok") version "8.14.2"
-    id("org.jreleaser") version "1.19.0"
+    id("org.jreleaser") version "1.20.0"
 }
 
 group = "com.ardetrick.testcontainers"
