@@ -1,7 +1,7 @@
 plugins {
     `maven-publish`
     `java-library`
-    id("io.freefair.lombok") version "8.14.2"
+    id("io.freefair.lombok") version "9.0.0"
     id("org.jreleaser") version "1.20.0"
 }
 
