@@ -1,6 +1,6 @@
 package com.ardetrick.testcontainers;
 
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
@@ -12,18 +12,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OryHydraDockerComposeContainer<SELF extends OryHydraDockerComposeContainer<SELF>> extends DockerComposeContainer<SELF> {
+public class OryHydraComposeContainer extends ComposeContainer {
 
     static final int HYDRA_ADMIN_PORT = 4445;
     static final int HYDRA_PUBLIC_PORT = 4444;
-    static final String SERVICE_NAME = "hydra_1";
-    static final WaitStrategy DEFAULT_WAIT_STRATEGY = Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(10));
+    static final String SERVICE_NAME = "hydra";
+    static final WaitStrategy DEFAULT_WAIT_STRATEGY = Wait.forListeningPort()
+                                                          .withStartupTimeout(Duration.ofSeconds(10));
 
     public static Builder builder() {
         return new Builder();
     }
 
-    private OryHydraDockerComposeContainer(
+    private OryHydraComposeContainer(
             Map<String, String> env,
             File... composeFiles
     ) {
@@ -81,12 +82,12 @@ public class OryHydraDockerComposeContainer<SELF extends OryHydraDockerComposeCo
             return this;
         }
 
-        public OryHydraDockerComposeContainer<?> start() {
-            if (dockerComposeFile == null) {
-                throw new IllegalStateException("file(s) must be non-null");
+        public OryHydraComposeContainer start() {
+            if (dockerComposeFile.isEmpty()) {
+                throw new IllegalStateException("At least one docker compose file must be provided");
             }
 
-            var compose = new OryHydraDockerComposeContainer<>(env, dockerComposeFile.toArray(new File[0]));
+            var compose = new OryHydraComposeContainer(env, dockerComposeFile.toArray(new File[0]));
             compose.start();
 
             return compose;

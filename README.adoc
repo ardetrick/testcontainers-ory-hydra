@@ -31,15 +31,15 @@ dependencies {
 
 [source,java]
 ----
-import com.ardetrick.testcontainers.OryHydraDockerComposeContainer;
+import com.ardetrick.testcontainers.OryHydraComposeContainer;
 
 public class HydraIntegrationTest {
 
-    OryHydraDockerComposeContainer<?> dockerComposeEnvironment;
+    OryHydraComposeContainer dockerComposeEnvironment;
 
     @BeforeEach
     public void beforeEachTest() {
-        dockerComposeEnvironment = OryHydraDockerComposeContainer.builder()
+        dockerComposeEnvironment = OryHydraComposeContainer.builder()
                 .dockerComposeFile(new File("path_to_docker_compose.yml"))
                 .urlsLogin("http://example.com/login")
                 .urlsConsent("http://example.com/consent")
