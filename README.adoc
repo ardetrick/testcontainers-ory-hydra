@@ -23,7 +23,7 @@ First, include the `OryHydraDockerComposeContainer` in your project's `build.gra
 [source,groovy]
 ----
 dependencies {
-    testImplementation 'com.ardetrick.testcontainers:ory-hydra-testcontainer:0.0.2'
+    testImplementation 'com.ardetrick.testcontainers:ory-hydra-testcontainer:0.0.4'
 }
 ----
 
