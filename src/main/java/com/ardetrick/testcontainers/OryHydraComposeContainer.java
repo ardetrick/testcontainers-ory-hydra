@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Compose-based Testcontainers wrapper that launches the Ory Hydra reference stack
@@ -21,8 +22,9 @@ public class OryHydraComposeContainer extends ComposeContainer {
     static final int HYDRA_ADMIN_PORT = 4445;
     static final int HYDRA_PUBLIC_PORT = 4444;
     static final String SERVICE_NAME = "hydra";
-    static final WaitStrategy DEFAULT_WAIT_STRATEGY = Wait.forListeningPort()
-                                                          .withStartupTimeout(Duration.ofSeconds(10));
+    static final WaitStrategy DEFAULT_WAIT_STRATEGY = Wait.forHttp("/health/ready")
+                                                          .forStatusCode(200)
+                                                          .withStartupTimeout(Duration.ofSeconds(30));
 
     /**
      * Creates a builder for configuring a Hydra compose environment.
@@ -35,12 +37,13 @@ public class OryHydraComposeContainer extends ComposeContainer {
 
     private OryHydraComposeContainer(
             Map<String, String> env,
+            WaitStrategy waitStrategy,
             File... composeFiles
     ) {
         super(composeFiles);
         this.withEnv(env);
-        this.withExposedService(SERVICE_NAME, HYDRA_ADMIN_PORT, DEFAULT_WAIT_STRATEGY);
-        this.withExposedService(SERVICE_NAME, HYDRA_PUBLIC_PORT, DEFAULT_WAIT_STRATEGY);
+        this.withExposedService(SERVICE_NAME, HYDRA_ADMIN_PORT, waitStrategy);
+        this.withExposedService(SERVICE_NAME, HYDRA_PUBLIC_PORT, waitStrategy);
     }
 
     /**
@@ -93,6 +96,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
 
         List<File> dockerComposeFile = new ArrayList<>();
         Map<String, String> env = new HashMap<>();
+        WaitStrategy waitStrategy = DEFAULT_WAIT_STRATEGY;
 
         /**
          * Creates an empty builder; configure it via the fluent setters before calling {@link #start()}.
@@ -145,6 +149,17 @@ public class OryHydraComposeContainer extends ComposeContainer {
         }
 
         /**
+         * Overrides the wait strategy used to determine when Hydra is ready.
+         *
+         * @param waitStrategy wait strategy supplied to Testcontainers
+         * @return this builder for chaining
+         */
+        public Builder waitStrategy(WaitStrategy waitStrategy) {
+            this.waitStrategy = Objects.requireNonNull(waitStrategy, "waitStrategy must not be null");
+            return this;
+        }
+
+        /**
          * Starts the configured compose environment.
          *
          * @return running {@link OryHydraComposeContainer}
@@ -155,7 +170,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
                 throw new IllegalStateException("At least one docker compose file must be provided");
             }
 
-            var compose = new OryHydraComposeContainer(env, dockerComposeFile.toArray(new File[0]));
+            var compose = new OryHydraComposeContainer(env, waitStrategy, dockerComposeFile.toArray(new File[0]));
             compose.start();
 
             return compose;
