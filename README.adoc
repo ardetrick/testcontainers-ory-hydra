@@ -44,7 +44,8 @@ public class HydraIntegrationTest {
                 .urlsLogin("http://example.com/login")
                 .urlsConsent("http://example.com/consent")
                 .urlsSelfIssuer("http://example.com/")
-                .start();
+                .build();
+        dockerComposeEnvironment.start();
     }
 
     @Test

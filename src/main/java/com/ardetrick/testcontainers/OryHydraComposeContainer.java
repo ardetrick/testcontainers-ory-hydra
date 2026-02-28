@@ -99,7 +99,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
         WaitStrategy waitStrategy = DEFAULT_WAIT_STRATEGY;
 
         /**
-         * Creates an empty builder; configure it via the fluent setters before calling {@link #start()}.
+         * Creates an empty builder; configure it via the fluent setters before calling {@link #build()}.
          */
         public Builder() {
         }
@@ -160,20 +160,20 @@ public class OryHydraComposeContainer extends ComposeContainer {
         }
 
         /**
-         * Starts the configured compose environment.
+         * Creates the configured compose environment.
+         * <p>
+         * The returned container is not yet started. Call {@link OryHydraComposeContainer#start()}
+         * directly, or let the Testcontainers JUnit extension manage the lifecycle
+         * (e.g. with {@code @Testcontainers} and {@code @Container}).
          *
-         * @return running {@link OryHydraComposeContainer}
+         * @return configured but not yet started {@link OryHydraComposeContainer}
          * @throws IllegalStateException if no compose files were provided
          */
-        public OryHydraComposeContainer start() {
+        public OryHydraComposeContainer build() {
             if (dockerComposeFile.isEmpty()) {
                 throw new IllegalStateException("At least one docker compose file must be provided");
             }
-
-            var compose = new OryHydraComposeContainer(env, waitStrategy, dockerComposeFile.toArray(new File[0]));
-            compose.start();
-
-            return compose;
+            return new OryHydraComposeContainer(env, waitStrategy, dockerComposeFile.toArray(new File[0]));
         }
 
     }
