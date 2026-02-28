@@ -15,8 +15,8 @@ Implement $ARGUMENTS following this workflow:
 ## Phase 2: Implement
 4. Implement the feature
 5. Run the full test suite: `./gradlew clean build`
-6. Commit using conventional commit format
-7. Let me know the change is ready for review — do not open a PR yet
+6. After a successful build, git commit all changes using conventional commit format
+7. Let me know the change is ready for review, including the branch name — do not open a PR yet
 
 ## Phase 3: Post-approval
 After I approve the change:
