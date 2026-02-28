@@ -90,6 +90,33 @@ public class OryHydraComposeContainer extends ComposeContainer {
     }
 
     /**
+     * Builds a convenience link to the OpenID Connect discovery endpoint.
+     *
+     * @return absolute URI pointing to {@code /.well-known/openid-configuration} on the public endpoint.
+     */
+    public URI getOpenIdDiscoveryUri() {
+        return URI.create(publicBaseUriString() + "/.well-known/openid-configuration");
+    }
+
+    /**
+     * Builds a convenience link to the Hydra OAuth2 token endpoint.
+     *
+     * @return absolute URI pointing to {@code /oauth2/token} on the public endpoint.
+     */
+    public URI getOAuth2TokenUri() {
+        return URI.create(publicBaseUriString() + "/oauth2/token");
+    }
+
+    /**
+     * Builds a convenience link to the Hydra admin client management endpoint.
+     *
+     * @return absolute URI pointing to {@code /admin/clients} on the admin endpoint.
+     */
+    public URI getAdminClientsUri() {
+        return URI.create(adminBaseUriString() + "/admin/clients");
+    }
+
+    /**
      * Fluent builder for composing the Hydra environment.
      */
     public static class Builder {
