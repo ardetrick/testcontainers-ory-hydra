@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   random:
     image: alpine:3.23.0

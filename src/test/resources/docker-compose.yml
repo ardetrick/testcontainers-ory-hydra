@@ -1,5 +1,4 @@
 # Copied from https://github.com/ory/hydra/blob/master/quickstart.yml
-version: "3.7"
 services:
   hydra:
     image: oryd/hydra:v25.4.0
