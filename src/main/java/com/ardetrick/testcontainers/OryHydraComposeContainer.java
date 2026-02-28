@@ -111,6 +111,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
          * @return this builder for chaining
          */
         public Builder dockerComposeFile(File file) {
+            Objects.requireNonNull(file, "file must not be null");
             dockerComposeFile.add(file);
             return this;
         }
@@ -122,6 +123,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
          * @return this builder for chaining
          */
         public Builder urlsLogin(String s) {
+            Objects.requireNonNull(s, "urlsLogin must not be null");
             this.env.put("URLS_LOGIN", s);
             return this;
         }
@@ -133,6 +135,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
          * @return this builder for chaining
          */
         public Builder urlsConsent(String s) {
+            Objects.requireNonNull(s, "urlsConsent must not be null");
             this.env.put("URLS_CONSENT", s);
             return this;
         }
@@ -144,6 +147,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
          * @return this builder for chaining
          */
         public Builder urlsSelfIssuer(String s) {
+            Objects.requireNonNull(s, "urlsSelfIssuer must not be null");
             this.env.put("URLS_SELF_ISSUER", s);
             return this;
         }
