@@ -1,6 +1,6 @@
 = Ory Hydra Testcontainer
 
-The `OryHydraDockerComposeContainer` is a Testcontainer extension designed for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications using Docker Compose.
+The `OryHydraComposeContainer` is a Testcontainer extension designed for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications using Docker Compose.
 
 == Prerequisites
 
@@ -18,7 +18,7 @@ The `OryHydraDockerComposeContainer` is a Testcontainer extension designed for t
 
 === Dependency
 
-First, include the `OryHydraDockerComposeContainer` in your project's `build.gradle`:
+First, include the `OryHydraComposeContainer` in your project's `build.gradle`:
 
 [source,groovy]
 ----
@@ -70,16 +70,16 @@ Using the `Builder` class, you can configure:
 To build from the source using the Gradle Wrapper:
 
 ----
-$ git clone https://github.com/ardetrick/ory-hydra-testcontainer.git
-$ cd ory-hydra-testcontainer
+$ git clone https://github.com/ardetrick/testcontainers-ory-hydra.git
+$ cd testcontainers-ory-hydra
 $ ./gradlew clean build
 ----
 
 For Windows:
 
 ----
-$ git clone https://github.com/ardetrick/ory-hydra-testcontainer.git
-$ cd ory-hydra-testcontainer
+$ git clone https://github.com/ardetrick/testcontainers-ory-hydra.git
+$ cd testcontainers-ory-hydra
 $ gradlew.bat clean build
 ----
 
