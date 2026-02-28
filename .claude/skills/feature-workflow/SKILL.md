@@ -9,7 +9,7 @@ Implement $ARGUMENTS following this workflow:
 
 ## Phase 1: Plan
 1. Create a new git worktree and branch (do not include "worktree" in the branch name)
-2. Enter plan mode to design the implementation approach
+2. Enter plan mode to design the implementation approach. The plan must incorporate all remaining steps from this workflow (Phases 2 and 3) so they are followed after plan mode exits.
 3. If you encounter questions or notable tradeoff concerns, raise them before proceeding
 
 ## Phase 2: Implement
