@@ -121,9 +121,9 @@ public class OryHydraComposeContainer extends ComposeContainer {
      */
     public static class Builder {
 
-        List<File> dockerComposeFile = new ArrayList<>();
-        Map<String, String> env = new HashMap<>();
-        WaitStrategy waitStrategy = DEFAULT_WAIT_STRATEGY;
+        private List<File> dockerComposeFile = new ArrayList<>();
+        private Map<String, String> env = new HashMap<>();
+        private WaitStrategy waitStrategy = DEFAULT_WAIT_STRATEGY;
 
         /**
          * Creates an empty builder; configure it via the fluent setters before calling {@link #build()}.
