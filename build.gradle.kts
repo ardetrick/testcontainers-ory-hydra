@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.ardetrick.testcontainers"
-version = "0.0.3-SNAPSHOT"
+version = "0.0.5-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -19,7 +19,6 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.27.7")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

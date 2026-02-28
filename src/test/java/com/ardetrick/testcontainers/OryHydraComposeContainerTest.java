@@ -13,7 +13,6 @@ public class OryHydraComposeContainerTest {
         try (var container = OryHydraComposeContainer.builder()
                                                      .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
                                                      .start()) {
-            container.stop();
         }
     }
 
@@ -22,7 +21,6 @@ public class OryHydraComposeContainerTest {
         try (var container = OryHydraComposeContainer.builder()
                                                      .dockerComposeFile(new File("src/test/resources/docker-compose-no-config-volume.yml"))
                                                      .start()) {
-            container.stop();
         }
     }
 
@@ -37,8 +35,6 @@ public class OryHydraComposeContainerTest {
                     .isPresent();
             assertThat(container.getContainerByServiceName("hydra"))
                     .isPresent();
-
-            container.stop();
         }
     }
 
