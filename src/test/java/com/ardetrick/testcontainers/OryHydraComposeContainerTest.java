@@ -12,7 +12,8 @@ public class OryHydraComposeContainerTest {
     public void containerStartsWithDockerComposeFile() {
         try (var container = OryHydraComposeContainer.builder()
                                                      .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
-                                                     .start()) {
+                                                     .build()) {
+            container.start();
         }
     }
 
@@ -20,7 +21,8 @@ public class OryHydraComposeContainerTest {
     public void startContainerWithNoConfigVolume() {
         try (var container = OryHydraComposeContainer.builder()
                                                      .dockerComposeFile(new File("src/test/resources/docker-compose-no-config-volume.yml"))
-                                                     .start()) {
+                                                     .build()) {
+            container.start();
         }
     }
 
@@ -29,7 +31,8 @@ public class OryHydraComposeContainerTest {
         try (var container = OryHydraComposeContainer.builder()
                                                      .dockerComposeFile(new File("src/test/resources/docker-compose-no-config-volume.yml"))
                                                      .dockerComposeFile(new File("src/test/resources/docker-compose-unrelated-container.yml"))
-                                                     .start()) {
+                                                     .build()) {
+            container.start();
 
             assertThat(container.getContainerByServiceName("random"))
                     .isPresent();
