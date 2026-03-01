@@ -20,7 +20,7 @@ Requires JDK 21. Docker must be running (tests start real containers).
 
 This is a single-class library:
 
-- **`OryHydraComposeContainer`** (`src/main/java/com/ardetrick/testcontainers/`) — Extends `ComposeContainer`. Uses a `Builder` inner class to configure docker-compose files, Hydra environment variables (`URLS_LOGIN`, `URLS_CONSENT`, `URLS_SELF_ISSUER`), and wait strategy. Exposes helper methods for admin/public base URIs and common endpoints (`/oauth2/auth`, `/.well-known/jwks.json`).
+- **`OryHydraComposeContainer`** (`src/main/java/com/ardetrick/testcontainers/`) — Extends `ComposeContainer`. Uses a `Builder` inner class to configure docker-compose files, Hydra environment variables (`URLS_LOGIN`, `URLS_CONSENT`, `URLS_SELF_ISSUER`, `URLS_LOGOUT`, `SECRETS_SYSTEM`, `DSN`, plus arbitrary env vars), and wait strategy. Exposes convenience URI methods for OAuth 2.0 and OIDC endpoints on both the public and admin APIs.
 
 - **Test resources** (`src/test/resources/`) — Multiple docker-compose files testing different configurations: with/without config volume binds, and multi-service stacks. The `volume/hydra.yml` file provides Ory Hydra configuration.
 
