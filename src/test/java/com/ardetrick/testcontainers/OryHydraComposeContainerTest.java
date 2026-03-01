@@ -8,6 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 public class OryHydraComposeContainerTest {
 
@@ -18,6 +19,8 @@ public class OryHydraComposeContainerTest {
             .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
             .build()) {
       container.start();
+
+      assertThat(container.getContainerByServiceName("hydra")).isPresent();
     }
   }
 
@@ -110,6 +113,19 @@ public class OryHydraComposeContainerTest {
                   HttpResponse.BodyHandlers.ofString());
 
       assertThat(response.body()).contains("\"issuer\":\"" + customIssuer + "\"");
+    }
+  }
+
+  @Test
+  public void customWaitStrategyIsApplied() {
+    try (var container =
+        OryHydraComposeContainer.builder()
+            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
+            .waitStrategy(Wait.forListeningPort())
+            .build()) {
+      container.start();
+
+      assertThat(container.getContainerByServiceName("hydra")).isPresent();
     }
   }
 
