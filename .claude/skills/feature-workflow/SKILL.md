@@ -16,12 +16,13 @@ Implement $ARGUMENTS following this workflow:
 4. Implement the feature
 5. Run the full test suite: `./gradlew clean build`
 6. After a successful build, git commit all changes using conventional commit format
-7. Let me know the change is ready for review, including the branch name — do not open a PR yet
+7. Evaluate whether `README.md` and `CLAUDE.md` are still accurate given the changes made, and update them if needed
+8. Let me know the change is ready for review, including the branch name — do not open a PR yet
 
 ## Phase 3: Post-approval
 After I approve the change:
-8. Rebase onto main
-9. Re-run the full test suite: `./gradlew clean build`
-10. If changes are needed, fix them and show me the diff before proceeding
-11. Open a PR and flag me for final review
-12. Ask whether auto-merge should be enabled on the PR
+9. Rebase onto main
+10. Re-run the full test suite: `./gradlew clean build`
+11. If changes are needed, fix them and show me the diff before proceeding
+12. Open a PR and flag me for final review
+13. Ask whether auto-merge should be enabled on the PR
