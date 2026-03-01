@@ -4,6 +4,10 @@ project:
   authors:
     - Alex Detrick
 
+release:
+  github:
+    skipRelease: true
+
 signing:
   active: ALWAYS
   armored: true
