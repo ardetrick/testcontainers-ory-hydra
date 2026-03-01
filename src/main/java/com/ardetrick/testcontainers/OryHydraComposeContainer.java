@@ -231,7 +231,8 @@ public class OryHydraComposeContainer extends ComposeContainer {
             if (dockerComposeFile.isEmpty()) {
                 throw new IllegalStateException("At least one docker compose file must be provided");
             }
-            return new OryHydraComposeContainer(env, waitStrategy, dockerComposeFile.toArray(new File[0]));
+            // Defensive copies so the builder is safe for reuse.
+            return new OryHydraComposeContainer(new HashMap<>(env), waitStrategy, dockerComposeFile.toArray(new File[0]));
         }
 
     }
