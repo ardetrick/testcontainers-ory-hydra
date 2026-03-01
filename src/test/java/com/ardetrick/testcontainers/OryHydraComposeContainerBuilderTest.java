@@ -1,5 +1,6 @@
 package com.ardetrick.testcontainers;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import org.junit.jupiter.api.Test;
@@ -92,5 +93,13 @@ class OryHydraComposeContainerBuilderTest {
     assertThatNullPointerException()
         .isThrownBy(() -> builder.waitStrategy(null))
         .withMessage("waitStrategy must not be null");
+  }
+
+  @Test
+  void buildWithNoComposeFilesThrows() {
+    var builder = OryHydraComposeContainer.builder();
+    assertThatIllegalStateException()
+        .isThrownBy(builder::build)
+        .withMessage("At least one docker compose file must be provided");
   }
 }

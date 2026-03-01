@@ -57,8 +57,14 @@ public class OryHydraComposeContainerTest {
       URI openIdDiscoveryUri = container.getOpenIdDiscoveryUri();
       assertThat(openIdDiscoveryUri).hasPath("/.well-known/openid-configuration");
 
+      URI oAuth2AuthUri = container.getOAuth2AuthUri();
+      assertThat(oAuth2AuthUri).hasPath("/oauth2/auth");
+
       URI oAuth2TokenUri = container.getOAuth2TokenUri();
       assertThat(oAuth2TokenUri).hasPath("/oauth2/token");
+
+      URI publicJwksUri = container.getPublicJwksUri();
+      assertThat(publicJwksUri).hasPath("/.well-known/jwks.json");
 
       URI adminClientsUri = container.getAdminClientsUri();
       assertThat(adminClientsUri).hasPath("/admin/clients");
@@ -71,6 +77,19 @@ public class OryHydraComposeContainerTest {
 
       URI userInfoUri = container.getUserInfoUri();
       assertThat(userInfoUri).hasPath("/userinfo");
+    }
+  }
+
+  @Test
+  public void baseUriStringsAreWellFormed() {
+    try (var container =
+        OryHydraComposeContainer.builder()
+            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
+            .build()) {
+      container.start();
+
+      assertThat(container.adminBaseUriString()).matches("http://.+:\\d+");
+      assertThat(container.publicBaseUriString()).matches("http://.+:\\d+");
     }
   }
 
