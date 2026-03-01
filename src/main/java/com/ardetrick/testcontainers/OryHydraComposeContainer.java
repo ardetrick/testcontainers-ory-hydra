@@ -43,7 +43,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
         super(composeFiles);
         this.withEnv(env);
         this.withExposedService(SERVICE_NAME, HYDRA_ADMIN_PORT, waitStrategy);
-        this.withExposedService(SERVICE_NAME, HYDRA_PUBLIC_PORT, waitStrategy);
+        this.withExposedService(SERVICE_NAME, HYDRA_PUBLIC_PORT);
     }
 
     /**
