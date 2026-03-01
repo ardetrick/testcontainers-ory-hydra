@@ -105,6 +105,34 @@ public class OryHydraComposeContainer extends ComposeContainer {
   }
 
   /**
+   * Builds a convenience link to the OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414).
+   *
+   * @return absolute URI pointing to {@code /.well-known/oauth-authorization-server} on the public
+   *     endpoint.
+   */
+  public URI getOAuthAuthorizationServerDiscoveryUri() {
+    return URI.create(publicBaseUriString() + "/.well-known/oauth-authorization-server");
+  }
+
+  /**
+   * Builds a convenience link to the OAuth 2.0 token revocation endpoint.
+   *
+   * @return absolute URI pointing to {@code /oauth2/revoke} on the public endpoint.
+   */
+  public URI getOAuth2RevokeUri() {
+    return URI.create(publicBaseUriString() + "/oauth2/revoke");
+  }
+
+  /**
+   * Builds a convenience link to the OpenID Connect UserInfo endpoint.
+   *
+   * @return absolute URI pointing to {@code /userinfo} on the public endpoint.
+   */
+  public URI getUserInfoUri() {
+    return URI.create(publicBaseUriString() + "/userinfo");
+  }
+
+  /**
    * Builds a convenience link to the Hydra admin client management endpoint.
    *
    * @return absolute URI pointing to {@code /admin/clients} on the admin endpoint.
