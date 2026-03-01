@@ -39,6 +39,30 @@ class OryHydraComposeContainerBuilderTest {
   }
 
   @Test
+  void urlsLogoutRejectsNull() {
+    var builder = OryHydraComposeContainer.builder();
+    assertThatNullPointerException()
+        .isThrownBy(() -> builder.urlsLogout(null))
+        .withMessage("urlsLogout must not be null");
+  }
+
+  @Test
+  void secretsSystemRejectsNull() {
+    var builder = OryHydraComposeContainer.builder();
+    assertThatNullPointerException()
+        .isThrownBy(() -> builder.secretsSystem(null))
+        .withMessage("secretsSystem must not be null");
+  }
+
+  @Test
+  void dsnRejectsNull() {
+    var builder = OryHydraComposeContainer.builder();
+    assertThatNullPointerException()
+        .isThrownBy(() -> builder.dsn(null))
+        .withMessage("dsn must not be null");
+  }
+
+  @Test
   void envRejectsNullKey() {
     var builder = OryHydraComposeContainer.builder();
     assertThatNullPointerException()

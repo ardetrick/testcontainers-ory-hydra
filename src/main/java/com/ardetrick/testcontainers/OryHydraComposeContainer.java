@@ -175,6 +175,42 @@ public class OryHydraComposeContainer extends ComposeContainer {
     }
 
     /**
+     * Overrides the {@code URLS_LOGOUT} value passed to Hydra.
+     *
+     * @param s logout URL consumers should be redirected to
+     * @return this builder for chaining
+     */
+    public Builder urlsLogout(String s) {
+      Objects.requireNonNull(s, "urlsLogout must not be null");
+      this.env.put("URLS_LOGOUT", s);
+      return this;
+    }
+
+    /**
+     * Overrides the {@code SECRETS_SYSTEM} value passed to Hydra.
+     *
+     * @param s system secret used for encryption
+     * @return this builder for chaining
+     */
+    public Builder secretsSystem(String s) {
+      Objects.requireNonNull(s, "secretsSystem must not be null");
+      this.env.put("SECRETS_SYSTEM", s);
+      return this;
+    }
+
+    /**
+     * Overrides the {@code DSN} value passed to Hydra.
+     *
+     * @param s database connection string
+     * @return this builder for chaining
+     */
+    public Builder dsn(String s) {
+      Objects.requireNonNull(s, "dsn must not be null");
+      this.env.put("DSN", s);
+      return this;
+    }
+
+    /**
      * Sets an environment variable that will be passed to the compose services.
      *
      * @param key environment variable name
