@@ -181,6 +181,32 @@ public class OryHydraComposeContainer extends ComposeContainer {
         }
 
         /**
+         * Sets an environment variable that will be passed to the compose services.
+         *
+         * @param key   environment variable name
+         * @param value environment variable value
+         * @return this builder for chaining
+         */
+        public Builder env(String key, String value) {
+            Objects.requireNonNull(key, "key must not be null");
+            Objects.requireNonNull(value, "value must not be null");
+            this.env.put(key, value);
+            return this;
+        }
+
+        /**
+         * Merges a map of environment variables that will be passed to the compose services.
+         *
+         * @param env environment variables to add
+         * @return this builder for chaining
+         */
+        public Builder env(Map<String, String> env) {
+            Objects.requireNonNull(env, "env must not be null");
+            this.env.putAll(env);
+            return this;
+        }
+
+        /**
          * Overrides the wait strategy used to determine when Hydra is ready.
          *
          * @param waitStrategy wait strategy supplied to Testcontainers
