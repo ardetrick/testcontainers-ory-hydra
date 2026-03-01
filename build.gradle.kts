@@ -3,6 +3,16 @@ plugins {
     `java-library`
     id("io.freefair.lombok") version "9.2.0"
     id("org.jreleaser") version "1.21.0"
+    id("com.diffplug.spotless") version "8.2.1"
+}
+
+spotless {
+    java {
+        googleJavaFormat("1.34.1")
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 group = "com.ardetrick.testcontainers"

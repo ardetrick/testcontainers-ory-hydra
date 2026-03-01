@@ -26,6 +26,8 @@ This is a single-class library:
 
 ## Code Style
 
+Code is formatted with [google-java-format](https://github.com/google/google-java-format) via the [Spotless](https://github.com/diffplug/spotless) Gradle plugin. Run `./gradlew spotlessApply` after making code changes to auto-format. The `build` task includes `spotlessCheck`, so CI will reject unformatted code.
+
 Lombok is available via the `io.freefair.lombok` Gradle plugin. Use Lombok annotations to reduce boilerplate where appropriate.
 
 ## Commit Conventions
