@@ -42,6 +42,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
     ) {
         super(composeFiles);
         this.withEnv(env);
+        // Both ports are served by the same Hydra process, so a single wait strategy suffices.
         this.withExposedService(SERVICE_NAME, HYDRA_ADMIN_PORT, waitStrategy);
         this.withExposedService(SERVICE_NAME, HYDRA_PUBLIC_PORT);
     }
