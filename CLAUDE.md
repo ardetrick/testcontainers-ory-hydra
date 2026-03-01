@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A [Testcontainers](https://testcontainers.com) community module for [Ory Hydra](https://www.ory.sh/hydra), an open-source OAuth 2.0 and OpenID Connect server. This library makes it easy to spin up a real Hydra instance in Java integration tests. The single public class `OryHydraComposeContainer` extends Testcontainers' `ComposeContainer` with a fluent builder API, sensible defaults, and convenience methods for Hydra's admin/public endpoints.
+A [Testcontainers](https://testcontainers.com) community module for [Ory Hydra](https://www.ory.sh/hydra), an open-source OAuth 2.0 and OpenID Connect server. This library makes it easy to spin up a real Hydra instance in Java integration tests. The single public class `OryHydraContainer` extends Testcontainers' `GenericContainer` with a fluent builder API, sensible defaults, and convenience methods for Hydra's admin/public endpoints.
 
 ## Build Commands
 
 ```bash
 ./gradlew clean build          # Full build (compile + test)
 ./gradlew test                 # Run all tests
-./gradlew test --tests 'com.ardetrick.testcontainers.OryHydraComposeContainerTest.containerStartsWithDockerComposeFile'  # Single test
+./gradlew test --tests 'com.ardetrick.testcontainers.OryHydraContainerTest.containerStarts'  # Single test
 ```
 
 Requires JDK 21. Docker must be running (tests start real containers).
@@ -20,9 +20,7 @@ Requires JDK 21. Docker must be running (tests start real containers).
 
 This is a single-class library:
 
-- **`OryHydraComposeContainer`** (`src/main/java/com/ardetrick/testcontainers/`) — Extends `ComposeContainer`. Uses a `Builder` inner class to configure docker-compose files, Hydra environment variables (`URLS_LOGIN`, `URLS_CONSENT`, `URLS_SELF_ISSUER`, `URLS_LOGOUT`, `SECRETS_SYSTEM`, `DSN`, plus arbitrary env vars), and wait strategy. Exposes convenience URI methods for OAuth 2.0 and OIDC endpoints on both the public and admin APIs.
-
-- **Test resources** (`src/test/resources/`) — Multiple docker-compose files testing different configurations: with/without config volume binds, and multi-service stacks. The `volume/hydra.yml` file provides Ory Hydra configuration.
+- **`OryHydraContainer`** (`src/main/java/com/ardetrick/testcontainers/`) — Extends `GenericContainer`. Runs database migration and the Hydra server in a single container using a compound command (`migrate && serve`). Defaults to SQLite so no external database is required. Uses a `Builder` inner class to configure the Docker image, Hydra environment variables (`URLS_LOGIN`, `URLS_CONSENT`, `URLS_SELF_ISSUER`, `URLS_LOGOUT`, `SECRETS_SYSTEM`, `DSN`, plus arbitrary env vars), and wait strategy. Exposes convenience URI methods for OAuth 2.0 and OIDC endpoints on both the public and admin APIs.
 
 ## Code Style
 

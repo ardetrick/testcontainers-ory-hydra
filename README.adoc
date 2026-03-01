@@ -1,6 +1,6 @@
 = Ory Hydra Testcontainer
 
-The `OryHydraComposeContainer` is a Testcontainer extension designed for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications using Docker Compose.
+The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications — no Docker Compose file required.
 
 == Prerequisites
 
@@ -9,16 +9,18 @@ The `OryHydraComposeContainer` is a Testcontainer extension designed for the Ory
 
 == Features
 
+* Zero-config startup — runs database migration and the Hydra server in a single container.
+* Defaults to an in-container SQLite database, so no external database is needed.
 * Automatic setup of Ory Hydra's admin and public ports.
 * Convenient methods to fetch base URIs for both the admin and public endpoints.
 * Convenience URI helpers for common OAuth 2.0 and OpenID Connect endpoints (see <<convenience-uri-methods>>).
-* Customizable through a builder pattern, allowing for the configuration of Docker Compose files and environment variables.
+* Customizable through a builder pattern, allowing configuration of the Docker image, environment variables, and wait strategy.
 
 == Usage
 
 === Dependency
 
-First, include the `OryHydraComposeContainer` in your project's `build.gradle`:
+First, include the `OryHydraContainer` in your project's `build.gradle`:
 
 [source,groovy]
 ----
@@ -27,13 +29,13 @@ dependencies {
 }
 ----
 
-=== Test Usage
+=== Basic Usage
 
 The recommended approach uses Testcontainers' JUnit 5 annotations, which handle starting and stopping the container automatically:
 
 [source,java]
 ----
-import com.ardetrick.testcontainers.OryHydraComposeContainer;
+import com.ardetrick.testcontainers.OryHydraContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -41,16 +43,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class HydraIntegrationTest {
 
     @Container
-    static OryHydraComposeContainer hydra = OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("docker-compose.yml"))
-            .build();
+    static OryHydraContainer hydra = OryHydraContainer.builder().build();
 
     @Test
     void testOAuthFlow() {
         URI authUri = hydra.getOAuth2AuthUri();
         // Your test logic here...
     }
-
 }
 ----
 
@@ -58,26 +57,37 @@ Alternatively, use try-with-resources for per-test lifecycle management:
 
 [source,java]
 ----
-try (var hydra = OryHydraComposeContainer.builder()
-        .dockerComposeFile(new File("docker-compose.yml"))
-        .build()) {
+try (var hydra = OryHydraContainer.builder().build()) {
     hydra.start();
     // test logic
 }
+----
+
+=== Custom Configuration
+
+[source,java]
+----
+var hydra = OryHydraContainer.builder()
+        .image(DockerImageName.parse("oryd/hydra:v2.3.0"))
+        .urlsLogin("http://example.com/login")
+        .urlsConsent("http://example.com/consent")
+        .urlsSelfIssuer("http://example.com/")
+        .dsn("postgres://user:pass@host:5432/hydra")
+        .build();
 ----
 
 == Configuration Options
 
 Using the `Builder` class, you can configure:
 
-* `dockerComposeFile(File)`: Add a Docker Compose file to the stack. Can be called multiple times.
+* `image(DockerImageName)`: Override the Docker image (default: `oryd/hydra:v25.4.0`).
 * `urlsLogin(String)`: Set the login URL (`URLS_LOGIN`).
 * `urlsConsent(String)`: Set the consent URL (`URLS_CONSENT`).
 * `urlsSelfIssuer(String)`: Set the self-issuer URL (`URLS_SELF_ISSUER`).
 * `urlsLogout(String)`: Set the logout URL (`URLS_LOGOUT`).
 * `secretsSystem(String)`: Set the system secret used for encryption (`SECRETS_SYSTEM`).
-* `dsn(String)`: Set the database connection string (`DSN`).
-* `env(String, String)`: Set an arbitrary environment variable passed to the compose services.
+* `dsn(String)`: Set the database connection string (`DSN`, default: SQLite).
+* `env(String, String)`: Set an arbitrary environment variable.
 * `env(Map<String, String>)`: Merge a map of environment variables.
 * `waitStrategy(WaitStrategy)`: Override the readiness wait strategy (defaults to polling `/health/ready`).
 

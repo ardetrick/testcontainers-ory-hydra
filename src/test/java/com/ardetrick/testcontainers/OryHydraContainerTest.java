@@ -2,7 +2,6 @@ package com.ardetrick.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,36 +9,20 @@ import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-public class OryHydraComposeContainerTest {
+public class OryHydraContainerTest {
 
   @Test
-  public void containerStartsWithDockerComposeFile() {
-    try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
-            .build()) {
+  public void containerStarts() {
+    try (var container = OryHydraContainer.builder().build()) {
       container.start();
 
-      assertThat(container.getContainerByServiceName("hydra")).isPresent();
-    }
-  }
-
-  @Test
-  public void startContainerWithNoConfigVolume() {
-    try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose-no-config-volume.yml"))
-            .build()) {
-      container.start();
+      assertThat(container.isRunning()).isTrue();
     }
   }
 
   @Test
   public void hostAndPortMethodsReturnValidValues() {
-    try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
-            .build()) {
+    try (var container = OryHydraContainer.builder().build()) {
       container.start();
 
       assertThat(container.publicHost()).isNotEmpty();
@@ -51,10 +34,7 @@ public class OryHydraComposeContainerTest {
 
   @Test
   public void convenienceUriMethodsReturnExpectedPaths() {
-    try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
-            .build()) {
+    try (var container = OryHydraContainer.builder().build()) {
       container.start();
 
       URI openIdDiscoveryUri = container.getOpenIdDiscoveryUri();
@@ -97,10 +77,7 @@ public class OryHydraComposeContainerTest {
 
   @Test
   public void baseUriStringsAreWellFormed() {
-    try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
-            .build()) {
+    try (var container = OryHydraContainer.builder().build()) {
       container.start();
 
       assertThat(container.adminBaseUriString()).matches("http://.+:\\d+");
@@ -112,10 +89,7 @@ public class OryHydraComposeContainerTest {
   public void envVariableIsPassedToContainer() throws Exception {
     var customIssuer = "http://custom-issuer:1234";
     try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
-            .env("URLS_SELF_ISSUER", customIssuer)
-            .build()) {
+        OryHydraContainer.builder().env("URLS_SELF_ISSUER", customIssuer).build()) {
       container.start();
 
       var response =
@@ -131,28 +105,10 @@ public class OryHydraComposeContainerTest {
   @Test
   public void customWaitStrategyIsApplied() {
     try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
-            .waitStrategy(Wait.forListeningPort())
-            .build()) {
+        OryHydraContainer.builder().waitStrategy(Wait.forListeningPort()).build()) {
       container.start();
 
-      assertThat(container.getContainerByServiceName("hydra")).isPresent();
-    }
-  }
-
-  @Test
-  public void startWithMultipleDockerFiles() {
-    try (var container =
-        OryHydraComposeContainer.builder()
-            .dockerComposeFile(new File("src/test/resources/docker-compose-no-config-volume.yml"))
-            .dockerComposeFile(
-                new File("src/test/resources/docker-compose-unrelated-container.yml"))
-            .build()) {
-      container.start();
-
-      assertThat(container.getContainerByServiceName("random")).isPresent();
-      assertThat(container.getContainerByServiceName("hydra")).isPresent();
+      assertThat(container.isRunning()).isTrue();
     }
   }
 }
