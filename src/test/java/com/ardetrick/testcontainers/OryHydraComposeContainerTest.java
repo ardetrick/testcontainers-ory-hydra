@@ -32,6 +32,21 @@ public class OryHydraComposeContainerTest {
   }
 
   @Test
+  public void hostAndPortMethodsReturnValidValues() {
+    try (var container =
+        OryHydraComposeContainer.builder()
+            .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
+            .build()) {
+      container.start();
+
+      assertThat(container.publicHost()).isNotEmpty();
+      assertThat(container.publicPort()).isPositive();
+      assertThat(container.adminHost()).isNotEmpty();
+      assertThat(container.adminPort()).isPositive();
+    }
+  }
+
+  @Test
   public void convenienceUriMethodsReturnExpectedPaths() {
     try (var container =
         OryHydraComposeContainer.builder()
