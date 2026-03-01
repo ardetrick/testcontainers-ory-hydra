@@ -11,7 +11,7 @@ The `OryHydraComposeContainer` is a Testcontainer extension designed for the Ory
 
 * Automatic setup of Ory Hydra's admin and public ports.
 * Convenient methods to fetch base URIs for both the admin and public endpoints.
-* Easy retrieval of OAuth2 Authorization and JWKS URIs.
+* Convenience URI helpers for common OAuth 2.0 and OpenID Connect endpoints (see <<convenience-uri-methods>>).
 * Customizable through a builder pattern, allowing for the configuration of Docker Compose files and environment variables.
 
 == Usage
@@ -29,31 +29,40 @@ dependencies {
 
 === Test Usage
 
+The recommended approach uses Testcontainers' JUnit 5 annotations, which handle starting and stopping the container automatically:
+
 [source,java]
 ----
 import com.ardetrick.testcontainers.OryHydraComposeContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-public class HydraIntegrationTest {
+@Testcontainers
+class HydraIntegrationTest {
 
-    OryHydraComposeContainer dockerComposeEnvironment;
-
-    @BeforeEach
-    public void beforeEachTest() {
-        dockerComposeEnvironment = OryHydraComposeContainer.builder()
-                .dockerComposeFile(new File("path_to_docker_compose.yml"))
-                .urlsLogin("http://example.com/login")
-                .urlsConsent("http://example.com/consent")
-                .urlsSelfIssuer("http://example.com/")
-                .build();
-        dockerComposeEnvironment.start();
-    }
+    @Container
+    static OryHydraComposeContainer hydra = OryHydraComposeContainer.builder()
+            .dockerComposeFile(new File("docker-compose.yml"))
+            .build();
 
     @Test
-    public void testOAuthFlow() {
-        // Use the helper methods like hydra.getOAuth2AuthUri() for your tests.
+    void testOAuthFlow() {
+        URI authUri = hydra.getOAuth2AuthUri();
         // Your test logic here...
     }
 
+}
+----
+
+Alternatively, use try-with-resources for per-test lifecycle management:
+
+[source,java]
+----
+try (var hydra = OryHydraComposeContainer.builder()
+        .dockerComposeFile(new File("docker-compose.yml"))
+        .build()) {
+    hydra.start();
+    // test logic
 }
 ----
 
@@ -61,10 +70,77 @@ public class HydraIntegrationTest {
 
 Using the `Builder` class, you can configure:
 
-* `dockerComposeFile(File)`: Specify the Docker Compose file to use.
-* `urlsLogin(String)`: Set the login URL.
-* `urlsConsent(String)`: Set the consent URL.
-* `urlsSelfIssuer(String)`: Set the self-issuer URL.
+* `dockerComposeFile(File)`: Add a Docker Compose file to the stack. Can be called multiple times.
+* `urlsLogin(String)`: Set the login URL (`URLS_LOGIN`).
+* `urlsConsent(String)`: Set the consent URL (`URLS_CONSENT`).
+* `urlsSelfIssuer(String)`: Set the self-issuer URL (`URLS_SELF_ISSUER`).
+* `urlsLogout(String)`: Set the logout URL (`URLS_LOGOUT`).
+* `secretsSystem(String)`: Set the system secret used for encryption (`SECRETS_SYSTEM`).
+* `dsn(String)`: Set the database connection string (`DSN`).
+* `env(String, String)`: Set an arbitrary environment variable passed to the compose services.
+* `env(Map<String, String>)`: Merge a map of environment variables.
+* `waitStrategy(WaitStrategy)`: Override the readiness wait strategy (defaults to polling `/health/ready`).
+
+[[convenience-uri-methods]]
+== Convenience URI Methods
+
+Once the container is started, the following methods provide ready-to-use URIs for Hydra's endpoints:
+
+=== Public Endpoint
+
+[cols="1,1"]
+|===
+| Method | Path
+
+| `publicBaseUriString()`
+| Base URL (host + mapped port)
+
+| `getOAuth2AuthUri()`
+| `/oauth2/auth`
+
+| `getOAuth2TokenUri()`
+| `/oauth2/token`
+
+| `getOAuth2RevokeUri()`
+| `/oauth2/revoke`
+
+| `getOAuth2SessionsLogoutUri()`
+| `/oauth2/sessions/logout`
+
+| `getPublicJwksUri()`
+| `/.well-known/jwks.json`
+
+| `getOpenIdDiscoveryUri()`
+| `/.well-known/openid-configuration`
+
+| `getOAuthAuthorizationServerDiscoveryUri()`
+| `/.well-known/oauth-authorization-server`
+
+| `getUserInfoUri()`
+| `/userinfo`
+|===
+
+=== Admin Endpoint
+
+[cols="1,1"]
+|===
+| Method | Path
+
+| `adminBaseUriString()`
+| Base URL (host + mapped port)
+
+| `getAdminClientsUri()`
+| `/admin/clients`
+
+| `getAdminOAuth2IntrospectUri()`
+| `/admin/oauth2/introspect`
+
+| `getAdminLoginRequestUri()`
+| `/admin/oauth2/auth/requests/login`
+
+| `getAdminConsentRequestUri()`
+| `/admin/oauth2/auth/requests/consent`
+|===
 
 == Building
 
