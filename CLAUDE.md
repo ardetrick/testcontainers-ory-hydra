@@ -14,7 +14,7 @@ A [Testcontainers](https://testcontainers.com) community module for [Ory Hydra](
 ./gradlew test --tests 'com.ardetrick.testcontainers.OryHydraContainerTest.containerStarts'  # Single test
 ```
 
-Requires JDK 21. Docker must be running (tests start real containers).
+Requires JDK 17. Docker must be running (tests start real containers).
 
 ## Architecture
 
