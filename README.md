@@ -24,7 +24,7 @@ First, include the `OryHydraContainer` in your project's `build.gradle`:
 
 ```groovy
 dependencies {
-    testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.4'
+    testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.5'
 }
 ```
 

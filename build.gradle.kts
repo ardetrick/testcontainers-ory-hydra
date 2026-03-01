@@ -1,8 +1,17 @@
+buildscript {
+    configurations.classpath {
+        resolutionStrategy {
+            // Fix https://github.com/jreleaser/jreleaser/issues/1643
+            force("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
+        }
+    }
+}
+
 plugins {
     `maven-publish`
     `java-library`
     id("io.freefair.lombok") version "9.2.0"
-    id("org.jreleaser") version "1.21.0"
+    id("org.jreleaser") version "1.23.0"
     id("com.diffplug.spotless") version "8.2.1"
 }
 
@@ -18,7 +27,7 @@ spotless {
 }
 
 group = "com.ardetrick.testcontainers"
-version = "0.0.5"
+version = "0.0.6-SNAPSHOT"
 
 repositories {
     mavenCentral()
