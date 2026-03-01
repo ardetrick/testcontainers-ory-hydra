@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,6 +45,25 @@ public class OryHydraComposeContainerTest {
 
             URI adminClientsUri = container.getAdminClientsUri();
             assertThat(adminClientsUri).hasPath("/admin/clients");
+        }
+    }
+
+    @Test
+    public void envVariableIsPassedToContainer() throws Exception {
+        var customIssuer = "http://custom-issuer:1234";
+        try (var container = OryHydraComposeContainer.builder()
+                                                     .dockerComposeFile(new File("src/test/resources/docker-compose.yml"))
+                                                     .env("URLS_SELF_ISSUER", customIssuer)
+                                                     .build()) {
+            container.start();
+
+            var response = HttpClient.newHttpClient().send(
+                    HttpRequest.newBuilder()
+                               .uri(container.getOpenIdDiscoveryUri())
+                               .build(),
+                    HttpResponse.BodyHandlers.ofString());
+
+            assertThat(response.body()).contains("\"issuer\":\"" + customIssuer + "\"");
         }
     }
 

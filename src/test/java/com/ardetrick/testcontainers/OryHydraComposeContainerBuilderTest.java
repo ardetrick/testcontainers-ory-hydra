@@ -39,6 +39,30 @@ class OryHydraComposeContainerBuilderTest {
     }
 
     @Test
+    void envRejectsNullKey() {
+        var builder = OryHydraComposeContainer.builder();
+        assertThatNullPointerException()
+                .isThrownBy(() -> builder.env(null, "value"))
+                .withMessage("key must not be null");
+    }
+
+    @Test
+    void envRejectsNullValue() {
+        var builder = OryHydraComposeContainer.builder();
+        assertThatNullPointerException()
+                .isThrownBy(() -> builder.env("key", null))
+                .withMessage("value must not be null");
+    }
+
+    @Test
+    void envMapRejectsNull() {
+        var builder = OryHydraComposeContainer.builder();
+        assertThatNullPointerException()
+                .isThrownBy(() -> builder.env(null))
+                .withMessage("env must not be null");
+    }
+
+    @Test
     void waitStrategyRejectsNull() {
         var builder = OryHydraComposeContainer.builder();
         assertThatNullPointerException()
