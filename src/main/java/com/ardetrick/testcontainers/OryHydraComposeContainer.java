@@ -43,12 +43,48 @@ public class OryHydraComposeContainer extends ComposeContainer {
   }
 
   /**
+   * Returns the host that the Hydra public API is reachable on.
+   *
+   * @return mapped host for the Hydra public port
+   */
+  public String publicHost() {
+    return getServiceHost(SERVICE_NAME, HYDRA_PUBLIC_PORT);
+  }
+
+  /**
+   * Returns the mapped port for the Hydra public API.
+   *
+   * @return mapped port for the Hydra public port
+   */
+  public int publicPort() {
+    return getServicePort(SERVICE_NAME, HYDRA_PUBLIC_PORT);
+  }
+
+  /**
+   * Returns the host that the Hydra admin API is reachable on.
+   *
+   * @return mapped host for the Hydra admin port
+   */
+  public String adminHost() {
+    return getServiceHost(SERVICE_NAME, HYDRA_ADMIN_PORT);
+  }
+
+  /**
+   * Returns the mapped port for the Hydra admin API.
+   *
+   * @return mapped port for the Hydra admin port
+   */
+  public int adminPort() {
+    return getServicePort(SERVICE_NAME, HYDRA_ADMIN_PORT);
+  }
+
+  /**
    * Provides the base URL clients can use to reach the Hydra admin API.
    *
    * @return base URL for the Hydra admin API (host and mapped admin port).
    */
   public String adminBaseUriString() {
-    return baseUriString(HYDRA_ADMIN_PORT);
+    return "http://" + adminHost() + ":" + adminPort();
   }
 
   /**
@@ -57,14 +93,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
    * @return base URL for the Hydra public API (host and mapped public port).
    */
   public String publicBaseUriString() {
-    return baseUriString(HYDRA_PUBLIC_PORT);
-  }
-
-  private String baseUriString(int port) {
-    return "http://"
-        + getServiceHost(SERVICE_NAME, port)
-        + ":"
-        + getServicePort(SERVICE_NAME, port);
+    return "http://" + publicHost() + ":" + publicPort();
   }
 
   /**
