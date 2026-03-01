@@ -1,31 +1,37 @@
 package com.ardetrick.testcontainers;
 
-import java.io.File;
 import java.net.URI;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
+import org.testcontainers.utility.DockerImageName;
 
 /**
- * Compose-based Testcontainers wrapper that launches the Ory Hydra reference stack with sensible
- * defaults and helper methods for the most common endpoints.
+ * Testcontainers wrapper that launches an Ory Hydra instance with sensible defaults and helper
+ * methods for the most common endpoints.
+ *
+ * <p>Runs database migration and the Hydra server in a single container using a compound command.
+ * Defaults to an in-container SQLite database, so no external database is required.
  */
-public class OryHydraComposeContainer extends ComposeContainer {
+public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
 
   static final int HYDRA_ADMIN_PORT = 4445;
   static final int HYDRA_PUBLIC_PORT = 4444;
-  static final String SERVICE_NAME = "hydra";
+  static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("oryd/hydra:v25.4.0");
+  static final String DEFAULT_DSN = "sqlite:///tmp/db.sqlite?_fk=true";
+  static final String DEFAULT_SECRETS_SYSTEM = "testcontainers-ory-hydra-secret";
   static final WaitStrategy DEFAULT_WAIT_STRATEGY =
-      Wait.forHttp("/health/ready").forStatusCode(200).withStartupTimeout(Duration.ofSeconds(30));
+      Wait.forHttp("/health/ready")
+          .forPort(HYDRA_ADMIN_PORT)
+          .forStatusCode(200)
+          .withStartupTimeout(Duration.ofSeconds(30));
 
   /**
-   * Creates a builder for configuring a Hydra compose environment.
+   * Creates a builder for configuring a Hydra container.
    *
    * @return new builder instance
    */
@@ -33,13 +39,16 @@ public class OryHydraComposeContainer extends ComposeContainer {
     return new Builder();
   }
 
-  private OryHydraComposeContainer(
-      Map<String, String> env, WaitStrategy waitStrategy, File... composeFiles) {
-    super(composeFiles);
+  private OryHydraContainer(
+      DockerImageName imageName, Map<String, String> env, WaitStrategy waitStrategy) {
+    super(imageName);
     this.withEnv(env);
-    // Both ports are served by the same Hydra process, so a single wait strategy suffices.
-    this.withExposedService(SERVICE_NAME, HYDRA_ADMIN_PORT, waitStrategy);
-    this.withExposedService(SERVICE_NAME, HYDRA_PUBLIC_PORT);
+    this.withExposedPorts(HYDRA_ADMIN_PORT, HYDRA_PUBLIC_PORT);
+    // Override the image entrypoint so we can run migration before serving.
+    this.withCreateContainerCmdModifier(
+        cmd ->
+            cmd.withEntrypoint("sh", "-c", "hydra migrate sql -e --yes && hydra serve all --dev"));
+    this.waitingFor(waitStrategy);
   }
 
   /**
@@ -48,7 +57,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
    * @return mapped host for the Hydra public port
    */
   public String publicHost() {
-    return getServiceHost(SERVICE_NAME, HYDRA_PUBLIC_PORT);
+    return getHost();
   }
 
   /**
@@ -57,7 +66,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
    * @return mapped port for the Hydra public port
    */
   public int publicPort() {
-    return getServicePort(SERVICE_NAME, HYDRA_PUBLIC_PORT);
+    return getMappedPort(HYDRA_PUBLIC_PORT);
   }
 
   /**
@@ -66,7 +75,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
    * @return mapped host for the Hydra admin port
    */
   public String adminHost() {
-    return getServiceHost(SERVICE_NAME, HYDRA_ADMIN_PORT);
+    return getHost();
   }
 
   /**
@@ -75,7 +84,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
    * @return mapped port for the Hydra admin port
    */
   public int adminPort() {
-    return getServicePort(SERVICE_NAME, HYDRA_ADMIN_PORT);
+    return getMappedPort(HYDRA_ADMIN_PORT);
   }
 
   /**
@@ -208,10 +217,10 @@ public class OryHydraComposeContainer extends ComposeContainer {
     return URI.create(adminBaseUriString() + "/admin/oauth2/auth/requests/consent");
   }
 
-  /** Fluent builder for composing the Hydra environment. */
+  /** Fluent builder for configuring the Hydra container. */
   public static class Builder {
 
-    private List<File> dockerComposeFile = new ArrayList<>();
+    private DockerImageName image = DEFAULT_IMAGE;
     private Map<String, String> env = new HashMap<>();
     private WaitStrategy waitStrategy = DEFAULT_WAIT_STRATEGY;
 
@@ -219,17 +228,19 @@ public class OryHydraComposeContainer extends ComposeContainer {
      * Creates an empty builder; configure it via the fluent setters before calling {@link
      * #build()}.
      */
-    public Builder() {}
+    public Builder() {
+      env.put("DSN", DEFAULT_DSN);
+      env.put("SECRETS_SYSTEM", DEFAULT_SECRETS_SYSTEM);
+    }
 
     /**
-     * Adds a docker compose file that defines part of the stack.
+     * Overrides the Docker image used for the Hydra container.
      *
-     * @param file compose file to load
+     * @param image Docker image name (e.g. {@code DockerImageName.parse("oryd/hydra:v2.3.0")})
      * @return this builder for chaining
      */
-    public Builder dockerComposeFile(File file) {
-      Objects.requireNonNull(file, "file must not be null");
-      dockerComposeFile.add(file);
+    public Builder image(DockerImageName image) {
+      this.image = Objects.requireNonNull(image, "image must not be null");
       return this;
     }
 
@@ -306,7 +317,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
     }
 
     /**
-     * Sets an environment variable that will be passed to the compose services.
+     * Sets an environment variable that will be passed to the Hydra container.
      *
      * @param key environment variable name
      * @param value environment variable value
@@ -320,7 +331,7 @@ public class OryHydraComposeContainer extends ComposeContainer {
     }
 
     /**
-     * Merges a map of environment variables that will be passed to the compose services.
+     * Merges a map of environment variables that will be passed to the Hydra container.
      *
      * @param env environment variables to add
      * @return this builder for chaining
@@ -343,22 +354,16 @@ public class OryHydraComposeContainer extends ComposeContainer {
     }
 
     /**
-     * Creates the configured compose environment.
+     * Creates the configured Hydra container.
      *
-     * <p>The returned container is not yet started. Call {@link OryHydraComposeContainer#start()}
+     * <p>The returned container is not yet started. Call {@link OryHydraContainer#start()}
      * directly, or let the Testcontainers JUnit extension manage the lifecycle (e.g. with
      * {@code @Testcontainers} and {@code @Container}).
      *
-     * @return configured but not yet started {@link OryHydraComposeContainer}
-     * @throws IllegalStateException if no compose files were provided
+     * @return configured but not yet started {@link OryHydraContainer}
      */
-    public OryHydraComposeContainer build() {
-      if (dockerComposeFile.isEmpty()) {
-        throw new IllegalStateException("At least one docker compose file must be provided");
-      }
-      // Defensive copies so the builder is safe for reuse.
-      return new OryHydraComposeContainer(
-          new HashMap<>(env), waitStrategy, dockerComposeFile.toArray(new File[0]));
+    public OryHydraContainer build() {
+      return new OryHydraContainer(image, new HashMap<>(env), waitStrategy);
     }
   }
 }
