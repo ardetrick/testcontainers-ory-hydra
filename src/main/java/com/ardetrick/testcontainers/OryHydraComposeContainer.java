@@ -162,12 +162,50 @@ public class OryHydraComposeContainer extends ComposeContainer {
   }
 
   /**
+   * Builds a convenience link to the OIDC front/back-channel logout endpoint.
+   *
+   * @return absolute URI pointing to {@code /oauth2/sessions/logout} on the public endpoint.
+   */
+  public URI getOAuth2SessionsLogoutUri() {
+    return URI.create(publicBaseUriString() + "/oauth2/sessions/logout");
+  }
+
+  /**
    * Builds a convenience link to the Hydra admin client management endpoint.
    *
    * @return absolute URI pointing to {@code /admin/clients} on the admin endpoint.
    */
   public URI getAdminClientsUri() {
     return URI.create(adminBaseUriString() + "/admin/clients");
+  }
+
+  /**
+   * Builds a convenience link to the OAuth 2.0 token introspection endpoint (RFC 7662).
+   *
+   * @return absolute URI pointing to {@code /admin/oauth2/introspect} on the admin endpoint.
+   */
+  public URI getAdminOAuth2IntrospectUri() {
+    return URI.create(adminBaseUriString() + "/admin/oauth2/introspect");
+  }
+
+  /**
+   * Builds a convenience link to the Hydra admin login request management endpoint.
+   *
+   * @return absolute URI pointing to {@code /admin/oauth2/auth/requests/login} on the admin
+   *     endpoint.
+   */
+  public URI getAdminLoginRequestUri() {
+    return URI.create(adminBaseUriString() + "/admin/oauth2/auth/requests/login");
+  }
+
+  /**
+   * Builds a convenience link to the Hydra admin consent request management endpoint.
+   *
+   * @return absolute URI pointing to {@code /admin/oauth2/auth/requests/consent} on the admin
+   *     endpoint.
+   */
+  public URI getAdminConsentRequestUri() {
+    return URI.create(adminBaseUriString() + "/admin/oauth2/auth/requests/consent");
   }
 
   /** Fluent builder for composing the Hydra environment. */

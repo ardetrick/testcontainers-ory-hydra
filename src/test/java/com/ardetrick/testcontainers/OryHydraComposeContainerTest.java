@@ -80,6 +80,18 @@ public class OryHydraComposeContainerTest {
 
       URI userInfoUri = container.getUserInfoUri();
       assertThat(userInfoUri).hasPath("/userinfo");
+
+      URI oAuth2SessionsLogoutUri = container.getOAuth2SessionsLogoutUri();
+      assertThat(oAuth2SessionsLogoutUri).hasPath("/oauth2/sessions/logout");
+
+      URI adminIntrospectUri = container.getAdminOAuth2IntrospectUri();
+      assertThat(adminIntrospectUri).hasPath("/admin/oauth2/introspect");
+
+      URI adminLoginRequestUri = container.getAdminLoginRequestUri();
+      assertThat(adminLoginRequestUri).hasPath("/admin/oauth2/auth/requests/login");
+
+      URI adminConsentRequestUri = container.getAdminConsentRequestUri();
+      assertThat(adminConsentRequestUri).hasPath("/admin/oauth2/auth/requests/consent");
     }
   }
 
