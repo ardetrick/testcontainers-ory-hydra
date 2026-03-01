@@ -23,7 +23,7 @@ First, include the `OryHydraComposeContainer` in your project's `build.gradle`:
 [source,groovy]
 ----
 dependencies {
-    testImplementation 'com.ardetrick.testcontainers:ory-hydra-testcontainer:0.0.4'
+    testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.4'
 }
 ----
 
