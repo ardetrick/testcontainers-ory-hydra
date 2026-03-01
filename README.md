@@ -1,40 +1,38 @@
-= Ory Hydra Testcontainer
+# Ory Hydra Testcontainer
 
 The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications — no Docker Compose file required.
 
-== Prerequisites
+## Prerequisites
 
 * Docker installed and running.
 * Java JDK 17 or later.
 
-== Features
+## Features
 
 * Zero-config startup — runs database migration and the Hydra server in a single container.
 * Defaults to an in-container SQLite database, so no external database is needed.
 * Automatic setup of Ory Hydra's admin and public ports.
 * Convenient methods to fetch base URIs for both the admin and public endpoints.
-* Convenience URI helpers for common OAuth 2.0 and OpenID Connect endpoints (see <<convenience-uri-methods>>).
+* Convenience URI helpers for common OAuth 2.0 and OpenID Connect endpoints (see [Convenience URI Methods](#convenience-uri-methods)).
 * Customizable through a builder pattern, allowing configuration of the Docker image, environment variables, and wait strategy.
 
-== Usage
+## Usage
 
-=== Dependency
+### Dependency
 
 First, include the `OryHydraContainer` in your project's `build.gradle`:
 
-[source,groovy]
-----
+```groovy
 dependencies {
     testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.4'
 }
-----
+```
 
-=== Basic Usage
+### Basic Usage
 
 The recommended approach uses Testcontainers' JUnit 5 annotations, which handle starting and stopping the container automatically:
 
-[source,java]
-----
+```java
 import com.ardetrick.testcontainers.OryHydraContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -51,22 +49,20 @@ class HydraIntegrationTest {
         // Your test logic here...
     }
 }
-----
+```
 
 Alternatively, use try-with-resources for per-test lifecycle management:
 
-[source,java]
-----
+```java
 try (var hydra = OryHydraContainer.builder().build()) {
     hydra.start();
     // test logic
 }
-----
+```
 
-=== Custom Configuration
+### Custom Configuration
 
-[source,java]
-----
+```java
 var hydra = OryHydraContainer.builder()
         .image(DockerImageName.parse("oryd/hydra:v2.3.0"))
         .urlsLogin("http://example.com/login")
@@ -74,9 +70,9 @@ var hydra = OryHydraContainer.builder()
         .urlsSelfIssuer("http://example.com/")
         .dsn("postgres://user:pass@host:5432/hydra")
         .build();
-----
+```
 
-== Configuration Options
+## Configuration Options
 
 Using the `Builder` class, you can configure:
 
@@ -91,91 +87,58 @@ Using the `Builder` class, you can configure:
 * `env(Map<String, String>)`: Merge a map of environment variables.
 * `waitStrategy(WaitStrategy)`: Override the readiness wait strategy (defaults to polling `/health/ready`).
 
-[[convenience-uri-methods]]
-== Convenience URI Methods
+## Convenience URI Methods
 
 Once the container is started, the following methods provide ready-to-use URIs for Hydra's endpoints:
 
-=== Public Endpoint
+### Public Endpoint
 
-[cols="1,1"]
-|===
-| Method | Path
+| Method | Path |
+| --- | --- |
+| `publicBaseUriString()` | Base URL (host + mapped port) |
+| `getOAuth2AuthUri()` | `/oauth2/auth` |
+| `getOAuth2TokenUri()` | `/oauth2/token` |
+| `getOAuth2RevokeUri()` | `/oauth2/revoke` |
+| `getOAuth2SessionsLogoutUri()` | `/oauth2/sessions/logout` |
+| `getPublicJwksUri()` | `/.well-known/jwks.json` |
+| `getOpenIdDiscoveryUri()` | `/.well-known/openid-configuration` |
+| `getOAuthAuthorizationServerDiscoveryUri()` | `/.well-known/oauth-authorization-server` |
+| `getUserInfoUri()` | `/userinfo` |
 
-| `publicBaseUriString()`
-| Base URL (host + mapped port)
+### Admin Endpoint
 
-| `getOAuth2AuthUri()`
-| `/oauth2/auth`
+| Method | Path |
+| --- | --- |
+| `adminBaseUriString()` | Base URL (host + mapped port) |
+| `getAdminClientsUri()` | `/admin/clients` |
+| `getAdminOAuth2IntrospectUri()` | `/admin/oauth2/introspect` |
+| `getAdminLoginRequestUri()` | `/admin/oauth2/auth/requests/login` |
+| `getAdminConsentRequestUri()` | `/admin/oauth2/auth/requests/consent` |
 
-| `getOAuth2TokenUri()`
-| `/oauth2/token`
-
-| `getOAuth2RevokeUri()`
-| `/oauth2/revoke`
-
-| `getOAuth2SessionsLogoutUri()`
-| `/oauth2/sessions/logout`
-
-| `getPublicJwksUri()`
-| `/.well-known/jwks.json`
-
-| `getOpenIdDiscoveryUri()`
-| `/.well-known/openid-configuration`
-
-| `getOAuthAuthorizationServerDiscoveryUri()`
-| `/.well-known/oauth-authorization-server`
-
-| `getUserInfoUri()`
-| `/userinfo`
-|===
-
-=== Admin Endpoint
-
-[cols="1,1"]
-|===
-| Method | Path
-
-| `adminBaseUriString()`
-| Base URL (host + mapped port)
-
-| `getAdminClientsUri()`
-| `/admin/clients`
-
-| `getAdminOAuth2IntrospectUri()`
-| `/admin/oauth2/introspect`
-
-| `getAdminLoginRequestUri()`
-| `/admin/oauth2/auth/requests/login`
-
-| `getAdminConsentRequestUri()`
-| `/admin/oauth2/auth/requests/consent`
-|===
-
-== Building
+## Building
 
 To build from the source using the Gradle Wrapper:
 
-----
+```
 $ git clone https://github.com/ardetrick/testcontainers-ory-hydra.git
 $ cd testcontainers-ory-hydra
 $ ./gradlew clean build
-----
+```
 
 For Windows:
 
-----
+```
 $ git clone https://github.com/ardetrick/testcontainers-ory-hydra.git
 $ cd testcontainers-ory-hydra
 $ gradlew.bat clean build
-----
+```
 
-== Contributing
+## Contributing
 
 We welcome contributions! Please submit pull requests or open issues for feedback.
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-== Contact
+## Contact
 
 For questions or feedback, open an issue on the GitHub repository.
