@@ -5,7 +5,7 @@ The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenI
 == Prerequisites
 
 * Docker installed and running.
-* Java JDK 21 or later.
+* Java JDK 17 or later.
 
 == Features
 

@@ -8,6 +8,8 @@ plugins {
 
 spotless {
     java {
+        // Requires JDK 21+ to run. Gradle must be invoked with JDK 21 even though
+        // the java toolchain targets JDK 17 for compilation.
         googleJavaFormat("1.34.1")
         removeUnusedImports()
         trimTrailingWhitespace()
@@ -36,7 +38,7 @@ dependencies {
 }
 
 java.toolchain {
-    languageVersion.set(JavaLanguageVersion.of(21))
+    languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks.test {
