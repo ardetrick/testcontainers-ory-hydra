@@ -24,7 +24,7 @@ services:
     user: root
     environment:
       - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true
-    command: migrate sql -e --yes
+    command: migrate sql up -e --yes
     volumes:
       - type: volume
         source: hydra-sqlite
