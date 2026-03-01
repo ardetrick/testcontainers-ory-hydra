@@ -47,6 +47,15 @@ public class OryHydraComposeContainerTest {
 
       URI adminClientsUri = container.getAdminClientsUri();
       assertThat(adminClientsUri).hasPath("/admin/clients");
+
+      URI oAuthAuthServerUri = container.getOAuthAuthorizationServerDiscoveryUri();
+      assertThat(oAuthAuthServerUri).hasPath("/.well-known/oauth-authorization-server");
+
+      URI oAuth2RevokeUri = container.getOAuth2RevokeUri();
+      assertThat(oAuth2RevokeUri).hasPath("/oauth2/revoke");
+
+      URI userInfoUri = container.getUserInfoUri();
+      assertThat(userInfoUri).hasPath("/userinfo");
     }
   }
 
