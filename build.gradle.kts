@@ -30,6 +30,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.27.7")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.1")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
