@@ -1,5 +1,9 @@
 # Ory Hydra Testcontainer
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.ardetrick.testcontainers/testcontainers-ory-hydra)](https://central.sonatype.com/artifact/com.ardetrick.testcontainers/testcontainers-ory-hydra)
+[![CI](https://github.com/ardetrick/testcontainers-ory-hydra/actions/workflows/gradle.yml/badge.svg)](https://github.com/ardetrick/testcontainers-ory-hydra/actions/workflows/gradle.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications — no Docker Compose file required.
 
 ## Prerequisites
@@ -24,7 +28,7 @@ First, include the `OryHydraContainer` in your project's `build.gradle`:
 
 ```groovy
 dependencies {
-    testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.4'
+    testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.5'
 }
 ```
 
