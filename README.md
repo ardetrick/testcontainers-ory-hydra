@@ -30,12 +30,16 @@ First, include the `OryHydraContainer` in your project's `build.gradle`:
 ```groovy
 dependencies {
     testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.5'
+    // Only needed if you use @Testcontainers/@Container annotations (see Basic Usage below)
+    testImplementation 'org.testcontainers:junit-jupiter'
 }
 ```
 
+> **Note:** This library does not transitively include `testcontainers-junit-jupiter`. If you want to use the `@Testcontainers` and `@Container` JUnit 5 annotations, you must add the `org.testcontainers:junit-jupiter` dependency yourself. If you use the [Testcontainers BOM](https://java.testcontainers.org/getting_started/#managing-versions-for-multiple-testcontainers-dependencies), the version will be managed for you. The try-with-resources approach does not require this additional dependency.
+
 ### Basic Usage
 
-The recommended approach uses Testcontainers' JUnit 5 annotations, which handle starting and stopping the container automatically:
+The recommended approach uses Testcontainers' JUnit 5 annotations, which handle starting and stopping the container automatically. This requires the `org.testcontainers:junit-jupiter` dependency:
 
 ```java
 import com.ardetrick.testcontainers.OryHydraContainer;
