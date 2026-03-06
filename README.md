@@ -117,6 +117,8 @@ Once the container is started, the following methods provide ready-to-use URIs f
 
 ## Building
 
+**JDK 21** is required to run the build. The [google-java-format](https://github.com/google/google-java-format) formatter used by Spotless requires JDK 21+, even though the library itself targets JDK 17 for wider adoption.
+
 To build from the source using the Gradle Wrapper:
 
 ```
