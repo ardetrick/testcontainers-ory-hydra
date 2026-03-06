@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -40,38 +41,8 @@ public class OryHydraContainerTest {
       URI openIdDiscoveryUri = container.getOpenIdDiscoveryUri();
       assertThat(openIdDiscoveryUri).hasPath("/.well-known/openid-configuration");
 
-      URI oAuth2AuthUri = container.getOAuth2AuthUri();
-      assertThat(oAuth2AuthUri).hasPath("/oauth2/auth");
-
       URI oAuth2TokenUri = container.getOAuth2TokenUri();
       assertThat(oAuth2TokenUri).hasPath("/oauth2/token");
-
-      URI publicJwksUri = container.getPublicJwksUri();
-      assertThat(publicJwksUri).hasPath("/.well-known/jwks.json");
-
-      URI adminClientsUri = container.getAdminClientsUri();
-      assertThat(adminClientsUri).hasPath("/admin/clients");
-
-      URI oAuthAuthServerUri = container.getOAuthAuthorizationServerDiscoveryUri();
-      assertThat(oAuthAuthServerUri).hasPath("/.well-known/oauth-authorization-server");
-
-      URI oAuth2RevokeUri = container.getOAuth2RevokeUri();
-      assertThat(oAuth2RevokeUri).hasPath("/oauth2/revoke");
-
-      URI userInfoUri = container.getUserInfoUri();
-      assertThat(userInfoUri).hasPath("/userinfo");
-
-      URI oAuth2SessionsLogoutUri = container.getOAuth2SessionsLogoutUri();
-      assertThat(oAuth2SessionsLogoutUri).hasPath("/oauth2/sessions/logout");
-
-      URI adminIntrospectUri = container.getAdminOAuth2IntrospectUri();
-      assertThat(adminIntrospectUri).hasPath("/admin/oauth2/introspect");
-
-      URI adminLoginRequestUri = container.getAdminLoginRequestUri();
-      assertThat(adminLoginRequestUri).hasPath("/admin/oauth2/auth/requests/login");
-
-      URI adminConsentRequestUri = container.getAdminConsentRequestUri();
-      assertThat(adminConsentRequestUri).hasPath("/admin/oauth2/auth/requests/consent");
     }
   }
 
@@ -99,6 +70,28 @@ public class OryHydraContainerTest {
                   HttpResponse.BodyHandlers.ofString());
 
       assertThat(response.body()).contains("\"issuer\":\"" + customIssuer + "\"");
+    }
+  }
+
+  @Test
+  public void createOAuth2ClientSucceeds() throws Exception {
+    try (var container = OryHydraContainer.builder().build()) {
+      container.start();
+
+      container.createOAuth2Client(
+          "test-client", "test-secret", List.of("http://localhost/callback"));
+
+      var response =
+          HttpClient.newHttpClient()
+              .send(
+                  HttpRequest.newBuilder()
+                      .uri(
+                          URI.create(container.adminBaseUriString() + "/admin/clients/test-client"))
+                      .build(),
+                  HttpResponse.BodyHandlers.ofString());
+
+      assertThat(response.statusCode()).isEqualTo(200);
+      assertThat(response.body()).contains("\"client_id\":\"test-client\"");
     }
   }
 

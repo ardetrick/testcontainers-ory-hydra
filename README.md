@@ -16,8 +16,9 @@ The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenI
 * Zero-config startup — runs database migration and the Hydra server in a single container.
 * Defaults to an in-container SQLite database, so no external database is needed.
 * Automatic setup of Ory Hydra's admin and public ports.
+* `createOAuth2Client` convenience method to register OAuth 2.0 clients using the Hydra CLI inside the container — no extra HTTP dependencies needed.
 * Convenient methods to fetch base URIs for both the admin and public endpoints.
-* Convenience URI helpers for common OAuth 2.0 and OpenID Connect endpoints (see [Convenience URI Methods](#convenience-uri-methods)).
+* Convenience URI helpers for essential OAuth 2.0 and OpenID Connect endpoints (see [Convenience URI Methods](#convenience-uri-methods)).
 * Customizable through a builder pattern, allowing configuration of the Docker image, environment variables, and wait strategy.
 
 ## Usage
@@ -49,7 +50,7 @@ class HydraIntegrationTest {
 
     @Test
     void testOAuthFlow() {
-        URI authUri = hydra.getOAuth2AuthUri();
+        URI discoveryUri = hydra.getOpenIdDiscoveryUri();
         // Your test logic here...
     }
 }
@@ -91,33 +92,40 @@ Using the `Builder` class, you can configure:
 * `env(Map<String, String>)`: Merge a map of environment variables.
 * `waitStrategy(WaitStrategy)`: Override the readiness wait strategy (defaults to polling `/health/ready`).
 
+## Creating OAuth2 Clients
+
+Register an OAuth 2.0 client in the running Hydra instance using `createOAuth2Client`. This uses the Hydra CLI inside the container, so no additional HTTP client or dependencies are needed:
+
+```java
+hydra.createOAuth2Client("my-client", "my-secret", List.of("http://localhost/callback"));
+```
+
 ## Convenience URI Methods
 
 Once the container is started, the following methods provide ready-to-use URIs for Hydra's endpoints:
 
-### Public Endpoint
-
 | Method | Path |
 | --- | --- |
-| `publicBaseUriString()` | Base URL (host + mapped port) |
-| `getOAuth2AuthUri()` | `/oauth2/auth` |
-| `getOAuth2TokenUri()` | `/oauth2/token` |
-| `getOAuth2RevokeUri()` | `/oauth2/revoke` |
-| `getOAuth2SessionsLogoutUri()` | `/oauth2/sessions/logout` |
-| `getPublicJwksUri()` | `/.well-known/jwks.json` |
+| `publicBaseUriString()` | Public API base URL (host + mapped port) |
+| `adminBaseUriString()` | Admin API base URL (host + mapped port) |
 | `getOpenIdDiscoveryUri()` | `/.well-known/openid-configuration` |
-| `getOAuthAuthorizationServerDiscoveryUri()` | `/.well-known/oauth-authorization-server` |
-| `getUserInfoUri()` | `/userinfo` |
+| `getOAuth2TokenUri()` | `/oauth2/token` |
 
-### Admin Endpoint
+## Using Ory's Official Java Client
 
-| Method | Path |
-| --- | --- |
-| `adminBaseUriString()` | Base URL (host + mapped port) |
-| `getAdminClientsUri()` | `/admin/clients` |
-| `getAdminOAuth2IntrospectUri()` | `/admin/oauth2/introspect` |
-| `getAdminLoginRequestUri()` | `/admin/oauth2/auth/requests/login` |
-| `getAdminConsentRequestUri()` | `/admin/oauth2/auth/requests/consent` |
+For more advanced interactions with Hydra — such as token introspection, client management, or consent/login request handling — use [Ory's official generated Java client](https://github.com/ory/client-java). Point it at the base URIs provided by the container:
+
+```java
+import sh.ory.ApiClient;
+import sh.ory.api.OAuth2Api;
+
+var oryClient = new ApiClient();
+oryClient.setBasePath(hydra.adminBaseUriString());
+var oAuth2Api = new OAuth2Api(oryClient);
+
+// Example: list all registered OAuth2 clients
+var clients = oAuth2Api.listOAuth2Clients(null, null, null, null, null);
+```
 
 ## Building
 

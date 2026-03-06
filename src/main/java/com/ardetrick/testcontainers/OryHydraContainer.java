@@ -1,8 +1,11 @@
 package com.ardetrick.testcontainers;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.testcontainers.containers.GenericContainer;
@@ -106,21 +109,45 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
   }
 
   /**
-   * Builds a convenience link to the Hydra OAuth2 authorization endpoint.
+   * Creates an OAuth 2.0 client in the running Hydra instance using the Hydra CLI inside the
+   * container.
    *
-   * @return absolute URI pointing to {@code /oauth2/auth} on the public endpoint.
+   * @param clientId the client identifier
+   * @param clientSecret the client secret
+   * @param redirectUris list of allowed redirect URIs
+   * @throws IOException if an I/O error occurs communicating with the container
+   * @throws InterruptedException if the thread is interrupted while waiting for the command
+   * @throws IllegalStateException if the Hydra CLI exits with a non-zero status
    */
-  public URI getOAuth2AuthUri() {
-    return URI.create(publicBaseUriString() + "/oauth2/auth");
-  }
+  public void createOAuth2Client(String clientId, String clientSecret, List<String> redirectUris)
+      throws IOException, InterruptedException {
+    Objects.requireNonNull(clientId, "clientId must not be null");
+    Objects.requireNonNull(clientSecret, "clientSecret must not be null");
+    Objects.requireNonNull(redirectUris, "redirectUris must not be null");
 
-  /**
-   * Builds a convenience link to the Hydra JWKS discovery document.
-   *
-   * @return absolute URI for the JWKS document exposed by Hydra.
-   */
-  public URI getPublicJwksUri() {
-    return URI.create(publicBaseUriString() + "/.well-known/jwks.json");
+    List<String> command = new ArrayList<>();
+    command.add("hydra");
+    command.add("create");
+    command.add("oauth2-client");
+    command.add("--endpoint");
+    command.add("http://127.0.0.1:4445");
+    command.add("--id");
+    command.add(clientId);
+    command.add("--secret");
+    command.add(clientSecret);
+    for (String redirectUri : redirectUris) {
+      command.add("--redirect-uri");
+      command.add(redirectUri);
+    }
+
+    var result = execInContainer(command.toArray(new String[0]));
+    if (result.getExitCode() != 0) {
+      throw new IllegalStateException(
+          "Failed to create OAuth2 client (exit code "
+              + result.getExitCode()
+              + "): "
+              + result.getStderr());
+    }
   }
 
   /**
@@ -140,81 +167,6 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    */
   public URI getOAuth2TokenUri() {
     return URI.create(publicBaseUriString() + "/oauth2/token");
-  }
-
-  /**
-   * Builds a convenience link to the OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414).
-   *
-   * @return absolute URI pointing to {@code /.well-known/oauth-authorization-server} on the public
-   *     endpoint.
-   */
-  public URI getOAuthAuthorizationServerDiscoveryUri() {
-    return URI.create(publicBaseUriString() + "/.well-known/oauth-authorization-server");
-  }
-
-  /**
-   * Builds a convenience link to the OAuth 2.0 token revocation endpoint.
-   *
-   * @return absolute URI pointing to {@code /oauth2/revoke} on the public endpoint.
-   */
-  public URI getOAuth2RevokeUri() {
-    return URI.create(publicBaseUriString() + "/oauth2/revoke");
-  }
-
-  /**
-   * Builds a convenience link to the OpenID Connect UserInfo endpoint.
-   *
-   * @return absolute URI pointing to {@code /userinfo} on the public endpoint.
-   */
-  public URI getUserInfoUri() {
-    return URI.create(publicBaseUriString() + "/userinfo");
-  }
-
-  /**
-   * Builds a convenience link to the OIDC front/back-channel logout endpoint.
-   *
-   * @return absolute URI pointing to {@code /oauth2/sessions/logout} on the public endpoint.
-   */
-  public URI getOAuth2SessionsLogoutUri() {
-    return URI.create(publicBaseUriString() + "/oauth2/sessions/logout");
-  }
-
-  /**
-   * Builds a convenience link to the Hydra admin client management endpoint.
-   *
-   * @return absolute URI pointing to {@code /admin/clients} on the admin endpoint.
-   */
-  public URI getAdminClientsUri() {
-    return URI.create(adminBaseUriString() + "/admin/clients");
-  }
-
-  /**
-   * Builds a convenience link to the OAuth 2.0 token introspection endpoint (RFC 7662).
-   *
-   * @return absolute URI pointing to {@code /admin/oauth2/introspect} on the admin endpoint.
-   */
-  public URI getAdminOAuth2IntrospectUri() {
-    return URI.create(adminBaseUriString() + "/admin/oauth2/introspect");
-  }
-
-  /**
-   * Builds a convenience link to the Hydra admin login request management endpoint.
-   *
-   * @return absolute URI pointing to {@code /admin/oauth2/auth/requests/login} on the admin
-   *     endpoint.
-   */
-  public URI getAdminLoginRequestUri() {
-    return URI.create(adminBaseUriString() + "/admin/oauth2/auth/requests/login");
-  }
-
-  /**
-   * Builds a convenience link to the Hydra admin consent request management endpoint.
-   *
-   * @return absolute URI pointing to {@code /admin/oauth2/auth/requests/consent} on the admin
-   *     endpoint.
-   */
-  public URI getAdminConsentRequestUri() {
-    return URI.create(adminBaseUriString() + "/admin/oauth2/auth/requests/consent");
   }
 
   /** Fluent builder for configuring the Hydra container. */
