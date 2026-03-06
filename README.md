@@ -1,5 +1,9 @@
 # Ory Hydra Testcontainer
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.ardetrick.testcontainers/testcontainers-ory-hydra)](https://central.sonatype.com/artifact/com.ardetrick.testcontainers/testcontainers-ory-hydra)
+[![CI](https://github.com/ardetrick/testcontainers-ory-hydra/actions/workflows/gradle.yml/badge.svg)](https://github.com/ardetrick/testcontainers-ory-hydra/actions/workflows/gradle.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications — no Docker Compose file required.
 
 ## Prerequisites
@@ -124,6 +128,8 @@ var clients = oAuth2Api.listOAuth2Clients(null, null, null, null, null);
 ```
 
 ## Building
+
+**JDK 21** is required to run the build. The [google-java-format](https://github.com/google/google-java-format) formatter used by Spotless requires JDK 21+, even though the library itself targets JDK 17 for wider adoption.
 
 To build from the source using the Gradle Wrapper:
 
