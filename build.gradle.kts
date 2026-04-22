@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    api(platform("org.testcontainers:testcontainers-bom:2.0.4"))
+    api(platform("org.testcontainers:testcontainers-bom:2.0.5"))
     api("org.testcontainers:testcontainers")
 
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
