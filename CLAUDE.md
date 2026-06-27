@@ -38,4 +38,4 @@ Uses JReleaser (`jreleaser.yml`) to publish to Maven Central via Sonatype. Stagi
 
 ## CI
 
-GitHub Actions runs `./gradlew build --no-daemon` on push/PR to main. Dependabot and a Gradle wrapper update workflow handle dependency freshness.
+GitHub Actions runs `./gradlew build --no-daemon` on push/PR to main. Dependabot handles dependency freshness (including the Gradle wrapper).
