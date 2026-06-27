@@ -12,7 +12,7 @@ plugins {
     `java-library`
     id("io.freefair.lombok") version "9.5.0"
     id("org.jreleaser") version "1.24.0"
-    id("com.diffplug.spotless") version "8.6.0"
+    id("com.diffplug.spotless") version "8.7.0"
 }
 
 spotless {
