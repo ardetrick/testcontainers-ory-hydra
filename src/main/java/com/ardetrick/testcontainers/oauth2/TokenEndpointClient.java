@@ -27,6 +27,23 @@ final class TokenEndpointClient {
     return post(tokenEndpoint, form.toString(), clientId, clientSecret);
   }
 
+  /** Authorization-code exchange (RFC 6749 §4.1.3) using {@code client_secret_basic}. */
+  static FlowResult authorizationCode(
+      URI tokenEndpoint,
+      String clientId,
+      String clientSecret,
+      String code,
+      String redirectUri,
+      String codeVerifier) {
+    StringBuilder form = new StringBuilder("grant_type=authorization_code");
+    form.append("&code=").append(Http.encode(code));
+    form.append("&redirect_uri=").append(Http.encode(redirectUri));
+    if (codeVerifier != null) {
+      form.append("&code_verifier=").append(Http.encode(codeVerifier));
+    }
+    return post(tokenEndpoint, form.toString(), clientId, clientSecret);
+  }
+
   private static FlowResult post(
       URI tokenEndpoint, String form, String clientId, String clientSecret) {
     String credentials =

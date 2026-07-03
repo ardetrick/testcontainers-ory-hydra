@@ -1,5 +1,6 @@
 package com.ardetrick.testcontainers;
 
+import com.ardetrick.testcontainers.oauth2.AuthorizationCodeFlow;
 import com.ardetrick.testcontainers.oauth2.ClientCredentialsFlow;
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +29,10 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
   static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("oryd/hydra:v25.4.0");
   static final String DEFAULT_DSN = "sqlite:///tmp/db.sqlite?_fk=true";
   static final String DEFAULT_SECRETS_SYSTEM = "testcontainers-ory-hydra-secret";
+  // Non-resolvable sentinels: the authorization-code flow intercepts the login/consent redirects by
+  // their challenge query parameter, so these hosts are never actually contacted.
+  static final String DEFAULT_URLS_LOGIN = "http://hydra-login.invalid/login";
+  static final String DEFAULT_URLS_CONSENT = "http://hydra-consent.invalid/consent";
   static final WaitStrategy DEFAULT_WAIT_STRATEGY =
       Wait.forHttp("/health/ready")
           .forPort(HYDRA_ADMIN_PORT)
@@ -165,6 +170,23 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
   }
 
   /**
+   * Starts a fluent authorization-code flow against this container.
+   *
+   * <p>The flow auto-accepts (or, on request, rejects) Hydra's login and consent challenges via the
+   * admin API, so a real token can be obtained without a browser or a user-written login/consent
+   * app. Login and consent redirects are intercepted by their challenge query parameter, not by
+   * host, so the configured {@code URLS_LOGIN}/{@code URLS_CONSENT} values (non-resolvable
+   * sentinels by default) are never contacted — the flow also works when they are overridden via
+   * {@link Builder#urlsLogin(String)} / {@link Builder#urlsConsent(String)}.
+   *
+   * @return a new {@link AuthorizationCodeFlow} bound to this container's endpoints
+   */
+  public AuthorizationCodeFlow authorizationCodeFlow() {
+    return new AuthorizationCodeFlow(
+        URI.create(publicBaseUriString()), URI.create(adminBaseUriString()));
+  }
+
+  /**
    * Builds a convenience link to the OpenID Connect discovery endpoint.
    *
    * @return absolute URI pointing to {@code /.well-known/openid-configuration} on the public
@@ -197,6 +219,8 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
     public Builder() {
       env.put("DSN", DEFAULT_DSN);
       env.put("SECRETS_SYSTEM", DEFAULT_SECRETS_SYSTEM);
+      env.put("URLS_LOGIN", DEFAULT_URLS_LOGIN);
+      env.put("URLS_CONSENT", DEFAULT_URLS_CONSENT);
     }
 
     /**
