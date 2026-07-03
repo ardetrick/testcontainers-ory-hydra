@@ -1,5 +1,6 @@
 package com.ardetrick.testcontainers;
 
+import com.ardetrick.testcontainers.oauth2.ClientCredentialsFlow;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
@@ -148,6 +149,19 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
               + "): "
               + result.getStderr());
     }
+  }
+
+  /**
+   * Starts a fluent client-credentials flow (RFC 6749 §4.4) against this container.
+   *
+   * <p>The grant has no end-user, so a successful result never carries an ID token or refresh
+   * token. If no client is supplied, an ephemeral one is created for the request.
+   *
+   * @return a new {@link ClientCredentialsFlow} bound to this container's endpoints
+   */
+  public ClientCredentialsFlow clientCredentialsFlow() {
+    return new ClientCredentialsFlow(
+        URI.create(publicBaseUriString()), URI.create(adminBaseUriString()));
   }
 
   /**
