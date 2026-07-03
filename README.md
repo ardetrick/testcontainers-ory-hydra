@@ -4,7 +4,7 @@
 [![CI](https://github.com/ardetrick/testcontainers-ory-hydra/actions/workflows/gradle.yml/badge.svg)](https://github.com/ardetrick/testcontainers-ory-hydra/actions/workflows/gradle.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenID Connect provider. It allows you to quickly integrate and test Ory Hydra functionalities in Java applications — no Docker Compose file required.
+The `OryHydraContainer` is a [Testcontainers](https://testcontainers.com) module for [Ory Hydra](https://www.ory.sh/hydra), the OAuth 2.0 and OpenID Connect provider. It lets you spin up a real Hydra instance in your Java integration tests.
 
 ## Prerequisites
 
@@ -13,6 +13,7 @@ The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenI
 
 ## Features
 
+* One-liner token minting — `clientCredentialsFlow()` returns a real token from the running Hydra instance (see [Requesting Tokens](#requesting-tokens)).
 * Zero-config startup — runs database migration and the Hydra server in a single container.
 * Defaults to an in-container SQLite database, so no external database is needed.
 * Automatic setup of Ory Hydra's admin and public ports.
@@ -20,6 +21,7 @@ The `OryHydraContainer` is a Testcontainer for the Ory Hydra OAuth 2.0 and OpenI
 * Convenient methods to fetch base URIs for both the admin and public endpoints.
 * Convenience URI helpers for essential OAuth 2.0 and OpenID Connect endpoints (see [Convenience URI Methods](#convenience-uri-methods)).
 * Customizable through a builder pattern, allowing configuration of the Docker image, environment variables, and wait strategy.
+* Framework-agnostic — plain JDK HTTP under the hood, no framework (or JSON library) dependencies.
 
 ## Usage
 
@@ -69,6 +71,34 @@ try (var hydra = OryHydraContainer.builder().build()) {
 }
 ```
 
+### Requesting Tokens
+
+The flow helper runs against the started container and returns a `FlowResult`, which is either a
+`FlowResult.TokenResponse` (a successful token response, RFC 6749 §5.1) or a `FlowResult.OAuthError`
+(an error response, RFC 6749 §5.2). OAuth protocol errors are returned as values, not thrown;
+transport-level failures throw `HydraFlowException`.
+
+If no client is supplied via `clientId(...)`/`clientSecret(...)`, an ephemeral client with the
+requested scopes is registered automatically — so the shortest path to a real token is one line.
+
+#### Client credentials
+
+```java
+var result = hydra.clientCredentialsFlow()
+        .scopes("read")
+        .execute();
+
+var token = (FlowResult.TokenResponse) result;
+String accessToken = token.accessToken();
+```
+
+#### Wiring your application under test
+
+The library is framework-agnostic: point whatever OAuth/OIDC configuration your application uses
+at the container — `getOpenIdDiscoveryUri()` for discovery-based setups, or
+`publicBaseUriString()`/`getOAuth2TokenUri()` for individual endpoints — and feed it a token minted
+by the flow above.
+
 ### Custom Configuration
 
 ```java
@@ -98,7 +128,7 @@ Using the `Builder` class, you can configure:
 
 ## Creating OAuth2 Clients
 
-Register an OAuth 2.0 client in the running Hydra instance using `createOAuth2Client`. This uses the Hydra CLI inside the container, so no additional HTTP client or dependencies are needed:
+The flow helper in [Requesting Tokens](#requesting-tokens) registers an ephemeral client automatically, so most tests never need to create one explicitly. When a test needs a specific client, register it with `createOAuth2Client`. This uses the Hydra CLI inside the container, so no additional HTTP client or dependencies are needed:
 
 ```java
 hydra.createOAuth2Client("my-client", "my-secret", List.of("http://localhost/callback"));
