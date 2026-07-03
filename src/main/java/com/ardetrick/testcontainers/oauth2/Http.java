@@ -36,4 +36,9 @@ final class Http {
   static boolean is2xx(int statusCode) {
     return statusCode / 100 == 2;
   }
+
+  /** Returns whether the status code is in the 3xx (redirection) class. */
+  static boolean is3xx(int statusCode) {
+    return statusCode / 100 == 3;
+  }
 }
