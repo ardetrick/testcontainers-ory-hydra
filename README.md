@@ -13,7 +13,8 @@ The `OryHydraContainer` is a [Testcontainers](https://testcontainers.com) module
 
 ## Features
 
-* One-liner token minting — `clientCredentialsFlow()` returns a real token from the running Hydra instance (see [Requesting Tokens](#requesting-tokens)).
+* One-liner token minting — `authorizationCodeFlow()` and `clientCredentialsFlow()` return real tokens from the running Hydra instance (see [Requesting Tokens](#requesting-tokens)).
+* Full authorization-code flow without a browser or a login/consent app — the flow driver answers Hydra's login and consent challenges through the admin API, with configurable subject, scopes, audience, session claims, PKCE, and denial modes.
 * Zero-config startup — runs database migration and the Hydra server in a single container.
 * Defaults to an in-container SQLite database, so no external database is needed.
 * Automatic setup of Ory Hydra's admin and public ports.
@@ -73,7 +74,7 @@ try (var hydra = OryHydraContainer.builder().build()) {
 
 ### Requesting Tokens
 
-The flow helper runs against the started container and returns a `FlowResult`, which is either a
+Both flow helpers run against the started container and return a `FlowResult`, which is either a
 `FlowResult.TokenResponse` (a successful token response, RFC 6749 §5.1) or a `FlowResult.OAuthError`
 (an error response, RFC 6749 §5.2). OAuth protocol errors are returned as values, not thrown;
 transport-level failures throw `HydraFlowException`.
@@ -81,7 +82,49 @@ transport-level failures throw `HydraFlowException`.
 If no client is supplied via `clientId(...)`/`clientSecret(...)`, an ephemeral client with the
 requested scopes is registered automatically — so the shortest path to a real token is one line.
 
+#### Authorization code — no browser, no login/consent app required
+
+Ory Hydra normally delegates login and consent to an app you provide, which makes the
+authorization-code flow notoriously hard to integration-test. The flow driver removes that
+requirement: it performs the real authorization-code exchange against Hydra, following each
+redirect manually and answering the login and consent challenges through Hydra's admin API —
+asserting the subject you configure and granting the requested scopes.
+
+```java
+var result = hydra.authorizationCodeFlow()
+        .scopes("openid", "offline_access")
+        .subject("user-123")
+        .claims(Map.of("email", "user-123@example.com"))
+        .execute();
+
+var token = (FlowResult.TokenResponse) result;
+String accessToken  = token.accessToken();
+String idToken      = token.idToken();      // present because "openid" was granted
+String refreshToken = token.refreshToken(); // present because "offline_access" was granted
+```
+
+Options: `audience(...)` requests token audiences; `accessTokenClaims(...)`/`idTokenClaims(...)`
+target one token's session claims instead of both; `usePkce(true)` enables PKCE with the S256
+method.
+
+Because the tokens come from a real Hydra instance, denial paths are real too — a rejected consent
+produces Hydra's actual error redirect, not a fabricated response:
+
+```java
+var error = (FlowResult.OAuthError) hydra.authorizationCodeFlow()
+        .rejectConsent("access_denied", "user declined")
+        .execute();
+// error.error() == "access_denied"
+```
+
+To exercise a specific pre-registered client instead of an ephemeral one, pass
+`clientId(...)`/`clientSecret(...)`. The flow currently uses the fixed redirect URI
+`http://localhost/callback` (never actually served), so a pre-registered client must include that
+value in its `redirect_uris`.
+
 #### Client credentials
+
+For machine-to-machine tokens with no end-user, the client-credentials grant is the quickest path:
 
 ```java
 var result = hydra.clientCredentialsFlow()
@@ -94,10 +137,10 @@ String accessToken = token.accessToken();
 
 #### Testing a real login/consent app
 
-Hydra delegates login and consent to an app you provide. If the thing you are testing *is* that
-app, point `urlsLogin(...)`/`urlsConsent(...)` at it and drive the authorization-code flow
-externally (typically with a browser automation tool), letting your app answer Hydra's challenges
-via the admin API as it would in production. See
+The flow driver above replaces the login/consent app so you don't have to write one. If the thing
+you are testing *is* your login/consent app, don't use it — point `urlsLogin(...)`/`urlsConsent(...)`
+at your app and drive the flow externally (typically with a browser automation tool), letting your
+app answer Hydra's challenges via the admin API as it would in production. See
 [ory-hydra-refrence-java](https://github.com/ardetrick/ory-hydra-refrence-java) for a complete
 reference implementation of a login/consent app tested with this library.
 
@@ -106,7 +149,7 @@ reference implementation of a login/consent app tested with this library.
 The library is framework-agnostic: point whatever OAuth/OIDC configuration your application uses
 at the container — `getOpenIdDiscoveryUri()` for discovery-based setups, or
 `publicBaseUriString()`/`getOAuth2TokenUri()` for individual endpoints — and feed it a token minted
-by the flow above.
+by one of the flows above.
 
 ### Custom Configuration
 
@@ -125,8 +168,8 @@ var hydra = OryHydraContainer.builder()
 Using the `Builder` class, you can configure:
 
 * `image(DockerImageName)`: Override the Docker image (default: `oryd/hydra:v25.4.0`).
-* `urlsLogin(String)`: Set the login URL (`URLS_LOGIN`).
-* `urlsConsent(String)`: Set the consent URL (`URLS_CONSENT`).
+* `urlsLogin(String)`: Set the login URL (`URLS_LOGIN`). Defaults to a non-resolvable sentinel host; the authorization-code flow helper intercepts login redirects by their challenge parameter, so the sentinel is never contacted.
+* `urlsConsent(String)`: Set the consent URL (`URLS_CONSENT`). Defaults to a non-resolvable sentinel host, as above.
 * `urlsSelfIssuer(String)`: Set the self-issuer URL (`URLS_SELF_ISSUER`).
 * `urlsLogout(String)`: Set the logout URL (`URLS_LOGOUT`).
 * `secretsSystem(String)`: Set the system secret used for encryption (`SECRETS_SYSTEM`).
@@ -137,7 +180,7 @@ Using the `Builder` class, you can configure:
 
 ## Creating OAuth2 Clients
 
-The flow helper in [Requesting Tokens](#requesting-tokens) registers an ephemeral client automatically, so most tests never need to create one explicitly. When a test needs a specific client, register it with `createOAuth2Client`. This uses the Hydra CLI inside the container, so no additional HTTP client or dependencies are needed:
+The flow helpers in [Requesting Tokens](#requesting-tokens) register an ephemeral client automatically, so most tests never need to create one explicitly. When a test needs a specific client, register it with `createOAuth2Client`. This uses the Hydra CLI inside the container, so no additional HTTP client or dependencies are needed:
 
 ```java
 hydra.createOAuth2Client("my-client", "my-secret", List.of("http://localhost/callback"));
