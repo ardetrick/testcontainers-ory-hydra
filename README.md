@@ -92,6 +92,15 @@ var token = (FlowResult.TokenResponse) result;
 String accessToken = token.accessToken();
 ```
 
+#### Testing a real login/consent app
+
+Hydra delegates login and consent to an app you provide. If the thing you are testing *is* that
+app, point `urlsLogin(...)`/`urlsConsent(...)` at it and drive the authorization-code flow
+externally (typically with a browser automation tool), letting your app answer Hydra's challenges
+via the admin API as it would in production. See
+[ory-hydra-refrence-java](https://github.com/ardetrick/ory-hydra-refrence-java) for a complete
+reference implementation of a login/consent app tested with this library.
+
 #### Wiring your application under test
 
 The library is framework-agnostic: point whatever OAuth/OIDC configuration your application uses
