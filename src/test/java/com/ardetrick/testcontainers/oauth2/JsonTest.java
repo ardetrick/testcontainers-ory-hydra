@@ -49,4 +49,16 @@ class JsonTest {
   void rejectsTrailingContent() {
     assertThatThrownBy(() -> Json.parseObject("{} extra")).isInstanceOf(JsonParseException.class);
   }
+
+  @Test
+  void rejectsTruncatedUnicodeEscape() {
+    assertThatThrownBy(() -> Json.parseObject("{\"k\":\"\\u00"))
+        .isInstanceOf(JsonParseException.class);
+  }
+
+  @Test
+  void rejectsInvalidUnicodeEscape() {
+    assertThatThrownBy(() -> Json.parseObject("{\"k\":\"\\uZZZZ\"}"))
+        .isInstanceOf(JsonParseException.class);
+  }
 }

@@ -77,6 +77,27 @@ public class OryHydraContainerAuthorizationCodeFlowTest {
   }
 
   @Test
+  public void authorizationCodeFlowWithCustomRedirectUriSucceeds() throws Exception {
+    try (var container = OryHydraContainer.builder().build()) {
+      container.start();
+      var customRedirectUri = "http://my-app.example:8443/oauth/callback";
+      createClient(container, "custom-redirect-app", "custom-secret", "openid", customRedirectUri);
+
+      FlowResult result =
+          container
+              .authorizationCodeFlow()
+              .clientId("custom-redirect-app")
+              .clientSecret("custom-secret")
+              .scopes("openid")
+              .redirectUri(customRedirectUri)
+              .execute();
+
+      assertThat(result).isInstanceOf(FlowResult.TokenResponse.class);
+      assertThat(((FlowResult.TokenResponse) result).accessToken()).isNotBlank();
+    }
+  }
+
+  @Test
   public void authorizationCodeFlowWithPreRegisteredClientSucceeds() throws Exception {
     try (var container = OryHydraContainer.builder().build()) {
       container.start();
@@ -151,6 +172,16 @@ public class OryHydraContainerAuthorizationCodeFlowTest {
   private static void createClient(
       OryHydraContainer container, String clientId, String clientSecret, String scope)
       throws Exception {
+    createClient(container, clientId, clientSecret, scope, "http://localhost/callback");
+  }
+
+  private static void createClient(
+      OryHydraContainer container,
+      String clientId,
+      String clientSecret,
+      String scope,
+      String redirectUri)
+      throws Exception {
     var create =
         container.execInContainer(
             "hydra",
@@ -167,7 +198,7 @@ public class OryHydraContainerAuthorizationCodeFlowTest {
             "--scope",
             scope,
             "--redirect-uri",
-            "http://localhost/callback",
+            redirectUri,
             "--id",
             clientId,
             "--secret",

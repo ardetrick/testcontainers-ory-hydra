@@ -3,7 +3,6 @@ package com.ardetrick.testcontainers.oauth2;
 import com.ardetrick.testcontainers.oauth2.FlowResult.OAuthError;
 import java.net.CookieManager;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -17,6 +16,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -32,7 +32,7 @@ import java.util.UUID;
  */
 public final class AuthorizationCodeFlow {
 
-  private static final String REDIRECT_URI = "http://localhost/callback";
+  private static final String DEFAULT_REDIRECT_URI = "http://localhost/callback";
   private static final int MAX_HOPS = 10;
 
   private final URI publicBaseUri;
@@ -50,6 +50,7 @@ public final class AuthorizationCodeFlow {
   private String rejectConsentError;
   private String rejectConsentDescription;
   private boolean usePkce = false;
+  private String redirectUri = DEFAULT_REDIRECT_URI;
 
   /**
    * Creates a flow bound to a running Hydra container's endpoints.
@@ -66,8 +67,8 @@ public final class AuthorizationCodeFlow {
    * Uses an existing client instead of creating an ephemeral one. Requires {@link
    * #clientSecret(String)}.
    *
-   * <p>The flow uses the fixed redirect URI {@code http://localhost/callback} (never actually
-   * served), so the client must include it in its registered {@code redirect_uris}.
+   * <p>The client must include the flow's redirect URI — default {@code http://localhost/callback},
+   * configurable via {@link #redirectUri(String)} — in its registered {@code redirect_uris}.
    *
    * @param clientId the client identifier
    * @return this flow
@@ -85,6 +86,20 @@ public final class AuthorizationCodeFlow {
    */
   public AuthorizationCodeFlow clientSecret(String clientSecret) {
     this.clientSecret = clientSecret;
+    return this;
+  }
+
+  /**
+   * Sets the redirect URI used in the authorization request and token exchange (default {@code
+   * http://localhost/callback}). It is never actually served — the flow intercepts the redirect
+   * before any request is made to it — but a client supplied via {@link #clientId(String)} must
+   * include it in its registered {@code redirect_uris}.
+   *
+   * @param redirectUri the redirect URI to use
+   * @return this flow
+   */
+  public AuthorizationCodeFlow redirectUri(String redirectUri) {
+    this.redirectUri = redirectUri;
     return this;
   }
 
@@ -282,7 +297,7 @@ public final class AuthorizationCodeFlow {
         clientId,
         clientSecret,
         code,
-        REDIRECT_URI,
+        redirectUri,
         codeVerifier);
   }
 
@@ -300,7 +315,7 @@ public final class AuthorizationCodeFlow {
     registration.put("client_secret", secret);
     registration.put("grant_types", List.of("authorization_code", "refresh_token"));
     registration.put("response_types", List.of("code"));
-    registration.put("redirect_uris", List.of(REDIRECT_URI));
+    registration.put("redirect_uris", List.of(redirectUri));
     registration.put("scope", String.join(" ", scopes));
     registration.put("token_endpoint_auth_method", "client_secret_basic");
     if (!audience.isEmpty()) {
@@ -326,7 +341,7 @@ public final class AuthorizationCodeFlow {
     StringBuilder query = new StringBuilder();
     query.append("client_id=").append(Http.encode(clientId));
     query.append("&response_type=code");
-    query.append("&redirect_uri=").append(Http.encode(REDIRECT_URI));
+    query.append("&redirect_uri=").append(Http.encode(redirectUri));
     query.append("&scope=").append(Http.encode(String.join(" ", scopes)));
     query.append("&state=").append(Http.encode(state));
     for (String aud : audience) {
@@ -340,24 +355,25 @@ public final class AuthorizationCodeFlow {
   }
 
   private boolean isRedirectUri(URI location) {
-    URI redirect = URI.create(REDIRECT_URI);
-    return redirect.getHost().equals(location.getHost())
-        && redirect.getPath().equals(location.getPath());
+    URI redirect = URI.create(redirectUri);
+    return Objects.equals(redirect.getScheme(), location.getScheme())
+        && Objects.equals(redirect.getHost(), location.getHost())
+        && redirect.getPort() == location.getPort()
+        && Objects.equals(redirect.getPath(), location.getPath());
   }
 
+  // Swaps in the mapped authority while keeping the raw path/query untouched: decoding and
+  // re-encoding could corrupt values that legitimately contain encoded separators.
   private URI rewrite(URI location) {
-    try {
-      return new URI(
-          publicBaseUri.getScheme(),
-          null,
-          publicBaseUri.getHost(),
-          publicBaseUri.getPort(),
-          location.getPath(),
-          location.getQuery(),
-          location.getFragment());
-    } catch (URISyntaxException e) {
-      throw new HydraFlowException("Failed to rewrite redirect URI: " + location, e);
-    }
+    String query = location.getRawQuery() == null ? "" : "?" + location.getRawQuery();
+    String fragment = location.getRawFragment() == null ? "" : "#" + location.getRawFragment();
+    return URI.create(
+        publicBaseUri.getScheme()
+            + "://"
+            + publicBaseUri.getAuthority()
+            + location.getRawPath()
+            + query
+            + fragment);
   }
 
   private static Map<String, String> parseQuery(String rawQuery) {
