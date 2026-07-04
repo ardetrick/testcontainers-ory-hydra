@@ -18,9 +18,15 @@ Requires JDK 21 (google-java-format via Spotless needs 21+; the library targets 
 
 ## Architecture
 
-This is a single-class library:
+Two packages:
 
-- **`OryHydraContainer`** (`src/main/java/com/ardetrick/testcontainers/`) — Extends `GenericContainer`. Runs database migration and the Hydra server in a single container using a compound command (`migrate && serve`). Defaults to SQLite so no external database is required. Uses a `Builder` inner class to configure the Docker image, Hydra environment variables (`URLS_LOGIN`, `URLS_CONSENT`, `URLS_SELF_ISSUER`, `URLS_LOGOUT`, `SECRETS_SYSTEM`, `DSN`, plus arbitrary env vars), and wait strategy. Exposes convenience URI methods for OAuth 2.0 and OIDC endpoints on both the public and admin APIs.
+- **`OryHydraContainer`** (`com.ardetrick.testcontainers`) — Extends `GenericContainer`. Runs database migration and the Hydra server in a single container using a compound command (`migrate && serve`). Defaults to SQLite so no external database is required. Uses a `Builder` inner class to configure the Docker image, Hydra environment variables (`URLS_LOGIN`, `URLS_CONSENT`, `URLS_SELF_ISSUER`, `URLS_LOGOUT`, `SECRETS_SYSTEM`, `DSN`, plus arbitrary env vars), and wait strategy. `URLS_LOGIN`/`URLS_CONSENT` default to non-resolvable sentinel hosts (never contacted; the flow driver intercepts challenges by query parameter). Exposes convenience URI methods and the flow-helper factories `clientCredentialsFlow()` / `authorizationCodeFlow()`.
+
+- **`com.ardetrick.testcontainers.oauth2`** — Framework-agnostic OAuth 2.0 flow drivers (`ClientCredentialsFlow`, `AuthorizationCodeFlow`), bound only to a pair of base URIs. `execute()` returns a `FlowResult`: `TokenResponse` (RFC 6749 §5.1) or `OAuthError` (§5.2) — protocol errors are values, transport/flow failures throw `HydraFlowException`. The authorization-code driver follows redirects manually and answers Hydra's login/consent challenges via the admin API, rewriting each Hydra-bound redirect to the mapped host/port. Everything else in the package (`Json`, `JsonWriter`, `Http`, `AdminClient`, `TokenEndpointClient`) is a package-private implementation detail — the hand-rolled JSON code exists only to keep the library dependency-free and must not become public API.
+
+Two ArchUnit rules in `ArchitectureTest` enforce the boundaries: the `oauth2` package must not depend on Testcontainers, Docker, or the container class (dependency is one-way: container → flows), and only the flow API types may be public in `oauth2`.
+
+The library must stay framework-agnostic: no Spring or other framework dependencies in this artifact. Testing a user's real login/consent app (custom `URLS_LOGIN`/`URLS_CONSENT`, externally driven flow) is a core supported use case, guarded by `OryHydraContainerExternalLoginConsentTest` — see [ory-hydra-refrence-java](https://github.com/ardetrick/ory-hydra-refrence-java).
 
 ## Code Style
 
