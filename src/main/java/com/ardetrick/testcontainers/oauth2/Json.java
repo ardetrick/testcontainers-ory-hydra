@@ -94,9 +94,17 @@ final class Json {
           case 'r' -> sb.append('\r');
           case 't' -> sb.append('\t');
           case 'u' -> {
+            if (pos + 4 > src.length()) {
+              throw new JsonParseException("Truncated unicode escape at index " + pos);
+            }
             String hex = src.substring(pos, pos + 4);
             pos += 4;
-            sb.append((char) Integer.parseInt(hex, 16));
+            try {
+              sb.append((char) Integer.parseInt(hex, 16));
+            } catch (NumberFormatException e) {
+              throw new JsonParseException(
+                  "Invalid unicode escape '\\u" + hex + "' at index " + (pos - 4));
+            }
           }
           default -> throw new JsonParseException("Invalid escape '\\" + esc + "' at index " + pos);
         }

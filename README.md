@@ -118,9 +118,9 @@ var error = (FlowResult.OAuthError) hydra.authorizationCodeFlow()
 ```
 
 To exercise a specific pre-registered client instead of an ephemeral one, pass
-`clientId(...)`/`clientSecret(...)`. The flow currently uses the fixed redirect URI
-`http://localhost/callback` (never actually served), so a pre-registered client must include that
-value in its `redirect_uris`.
+`clientId(...)`/`clientSecret(...)`. The flow's redirect URI defaults to
+`http://localhost/callback` and can be overridden with `redirectUri(...)` to match the client's
+registered `redirect_uris` — it is never actually served either way.
 
 #### Client credentials
 
