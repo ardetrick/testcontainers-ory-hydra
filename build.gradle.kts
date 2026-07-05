@@ -27,7 +27,7 @@ spotless {
 }
 
 group = "com.ardetrick.testcontainers"
-version = "0.0.6-SNAPSHOT"
+version = "0.0.6"
 
 repositories {
     mavenCentral()

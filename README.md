@@ -43,7 +43,7 @@ First, include the `OryHydraContainer` in your project's `build.gradle`:
 
 ```groovy
 dependencies {
-    testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.5'
+    testImplementation 'com.ardetrick.testcontainers:testcontainers-ory-hydra:0.0.6'
     // Only needed if you use @Testcontainers/@Container annotations (see Basic Usage below)
     testImplementation 'org.testcontainers:junit-jupiter'
 }
