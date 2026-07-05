@@ -271,6 +271,28 @@ public final class AuthorizationCodeFlow {
         "Authorization code not received within " + MAX_HOPS + " redirects");
   }
 
+  /**
+   * Exchanges a refresh token for a new token pair (RFC 6749 §6) using this flow's client.
+   *
+   * <p>Call after {@link #execute()} so this flow's client — ephemeral or supplied — is resolved,
+   * or pre-set {@link #clientId(String)} (and {@link #clientSecret(String)}, unless {@link
+   * #publicClient(boolean)}) to refresh a token minted elsewhere by that client.
+   *
+   * @param refreshToken the refresh token to exchange
+   * @return a {@link FlowResult.TokenResponse} on success, or a {@link OAuthError} (e.g. {@code
+   *     invalid_grant} for an unknown, expired, or already-rotated refresh token)
+   * @throws HydraFlowException if no client is resolved or the request cannot be completed
+   */
+  public FlowResult refresh(String refreshToken) {
+    if (clientId == null) {
+      throw new HydraFlowException(
+          "No client resolved: call execute() first, or set clientId() to refresh with a known"
+              + " client");
+    }
+    return TokenEndpointClient.refreshToken(
+        publicBaseUri.resolve("/oauth2/token"), clientId, clientSecret, refreshToken);
+  }
+
   private static URI followRedirect(HttpClient http, URI current) {
     HttpResponse<String> response = Http.send(http, HttpRequest.newBuilder(current).GET().build());
     if (!Http.is3xx(response.statusCode())) {

@@ -98,6 +98,26 @@ public class OryHydraContainerAuthorizationCodeFlowTest {
   }
 
   @Test
+  public void refreshTokenGrantIssuesNewUsableTokens() {
+    try (var container = OryHydraContainer.builder().build()) {
+      container.start();
+      var flow = container.authorizationCodeFlow().scopes("openid", "offline_access");
+      var tokens = (FlowResult.TokenResponse) flow.execute();
+
+      var result = flow.refresh(tokens.refreshToken());
+
+      assertThat(result).isInstanceOf(FlowResult.TokenResponse.class);
+      var refreshed = (FlowResult.TokenResponse) result;
+      assertThat(refreshed.accessToken()).isNotBlank().isNotEqualTo(tokens.accessToken());
+      assertThat(refreshed.refreshToken()).isNotBlank();
+      assertThat(container.introspect(refreshed.accessToken()).active()).isTrue();
+
+      // An unknown refresh token is a protocol error value, not an exception.
+      assertThat(flow.refresh("garbage-refresh-token")).isInstanceOf(FlowResult.OAuthError.class);
+    }
+  }
+
+  @Test
   public void publicClientFlowWithImpliedPkceSucceeds() {
     try (var container = OryHydraContainer.builder().build()) {
       container.start();

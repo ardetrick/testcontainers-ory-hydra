@@ -27,6 +27,13 @@ final class TokenEndpointClient {
     return post(tokenEndpoint, form.toString(), clientId, clientSecret);
   }
 
+  /** Refresh-token grant (RFC 6749 §6), authenticated like the code exchange below. */
+  static FlowResult refreshToken(
+      URI tokenEndpoint, String clientId, String clientSecret, String refreshToken) {
+    String form = "grant_type=refresh_token&refresh_token=" + Http.encode(refreshToken);
+    return post(tokenEndpoint, form, clientId, clientSecret);
+  }
+
   /**
    * Authorization-code exchange (RFC 6749 §4.1.3) using {@code client_secret_basic}, or — when
    * {@code clientSecret} is {@code null} (public client) — {@code client_id} in the request body
