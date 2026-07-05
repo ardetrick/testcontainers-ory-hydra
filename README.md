@@ -24,6 +24,17 @@ The `OryHydraContainer` is a [Testcontainers](https://testcontainers.com) module
 * Customizable through a builder pattern, allowing configuration of the Docker image, environment variables, and wait strategy.
 * Framework-agnostic — plain JDK HTTP under the hood, no framework (or JSON library) dependencies.
 
+## Scope
+
+This library is a test harness for real Hydra, not a Hydra client SDK. In scope is what a test
+needs to assert behavior of the system under test: minting real tokens, validating them via
+introspection, and resolving endpoints. Administering Hydra — client management, consent
+sessions, JWKs — is out of scope; use [Ory's official Java client](#using-orys-official-java-client)
+for that. Also out of scope is fabricating invalid tokens or error responses: real denials
+(rejected login/consent) come from real Hydra and are fully supported, but forged, malformed, or
+expired-on-demand tokens are a mock server's job (e.g.
+[navikt/mock-oauth2-server](https://github.com/navikt/mock-oauth2-server)).
+
 ## Usage
 
 ### Dependency
