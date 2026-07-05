@@ -46,9 +46,13 @@ final class TokenEndpointClient {
 
   private static FlowResult post(
       URI tokenEndpoint, String form, String clientId, String clientSecret) {
+    // RFC 6749 §2.3.1: client id and secret are form-urlencoded before being concatenated
+    // and Base64-encoded, so secrets containing ':' or '%' authenticate correctly.
     String credentials =
         Base64.getEncoder()
-            .encodeToString((clientId + ":" + clientSecret).getBytes(StandardCharsets.UTF_8));
+            .encodeToString(
+                (Http.encode(clientId) + ":" + Http.encode(clientSecret))
+                    .getBytes(StandardCharsets.UTF_8));
     HttpResponse<String> response =
         Http.send(
             HttpClient.newHttpClient(),
