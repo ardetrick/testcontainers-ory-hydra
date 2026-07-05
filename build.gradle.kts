@@ -67,6 +67,9 @@ java.toolchain {
 
 tasks.test {
     useJUnitPlatform()
+    // The suite is one-container-per-test and fully independent; parallel forks cut wall time
+    // on cache-miss runs (warm runs skip test execution entirely via the build cache).
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }
 
 java {
