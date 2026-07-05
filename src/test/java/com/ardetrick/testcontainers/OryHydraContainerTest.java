@@ -74,6 +74,7 @@ public class OryHydraContainerTest {
   }
 
   @Test
+  @SuppressWarnings("removal") // pins the deprecated CLI helper until its removal release
   public void createOAuth2ClientSucceeds() throws Exception {
     try (var container = OryHydraContainer.builder().build()) {
       container.start();

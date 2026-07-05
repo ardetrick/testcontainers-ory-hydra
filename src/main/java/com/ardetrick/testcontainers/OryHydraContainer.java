@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
@@ -139,7 +140,11 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    * @throws IOException if an I/O error occurs communicating with the container
    * @throws InterruptedException if the thread is interrupted while waiting for the command
    * @throws IllegalStateException if the Hydra CLI exits with a non-zero status
+   * @deprecated use {@link #createOrReplaceClient(Consumer)} (or the {@code Map} overload) for
+   *     full-featured, upserting registration, or declare fixtures via {@link
+   *     Builder#client(Consumer)}; scheduled for removal.
    */
+  @Deprecated(since = "0.0.6", forRemoval = true)
   public void createOAuth2Client(String clientId, String clientSecret, List<String> redirectUris)
       throws IOException, InterruptedException {
     Objects.requireNonNull(clientId, "clientId must not be null");
@@ -169,6 +174,41 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
               + "): "
               + result.getStderr());
     }
+  }
+
+  /**
+   * Registers an OAuth 2.0 client on the running container, or replaces the existing client with
+   * the same {@code client_id} — an upsert, so re-running test classes against a shared container
+   * converge on the declared state instead of failing on duplicates.
+   *
+   * <p>The map is Hydra's client JSON, passed through verbatim (any field Hydra accepts works;
+   * nested values are allowed); it must contain {@code client_id}.
+   *
+   * @param registration Hydra client JSON as a map, including {@code client_id}
+   */
+  public void createOrReplaceClient(Map<String, Object> registration) {
+    OAuth2Clients.createOrReplace(URI.create(adminBaseUriString()), registration);
+  }
+
+  /**
+   * Registers an OAuth 2.0 client on the running container using the typed registration builder —
+   * or replaces the existing client with the same {@code client_id} (an upsert).
+   *
+   * <pre>{@code
+   * hydra.createOrReplaceClient(client -> client
+   *     .clientId("my-app")
+   *     .clientSecret("my-secret")
+   *     .grantTypes("client_credentials"));
+   * }</pre>
+   *
+   * @param customizer receives a fresh {@link OAuth2ClientRegistration} to populate; must set
+   *     {@code client_id}
+   */
+  public void createOrReplaceClient(Consumer<OAuth2ClientRegistration> customizer) {
+    Objects.requireNonNull(customizer, "customizer must not be null");
+    OAuth2ClientRegistration registration = OAuth2ClientRegistration.create();
+    customizer.accept(registration);
+    createOrReplaceClient(registration.toMap());
   }
 
   /**
@@ -524,6 +564,32 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
       Objects.requireNonNull(registration, "registration must not be null");
       this.clients.add(new LinkedHashMap<>(registration));
       return this;
+    }
+
+    /**
+     * Declares an OAuth 2.0 client fixture using the typed registration builder — equivalent to
+     * {@link #client(Map)} with the customized registration's map.
+     *
+     * <pre>{@code
+     * OryHydraContainer.builder()
+     *     .client(client -> client
+     *         .clientId("my-app")
+     *         .clientSecret("my-secret")
+     *         .grantTypes("authorization_code", "refresh_token")
+     *         .responseTypes("code")
+     *         .redirectUris("https://app.example/callback"))
+     *     .build();
+     * }</pre>
+     *
+     * @param customizer receives a fresh {@link OAuth2ClientRegistration} to populate; must set
+     *     {@code client_id}
+     * @return this builder for chaining
+     */
+    public Builder client(Consumer<OAuth2ClientRegistration> customizer) {
+      Objects.requireNonNull(customizer, "customizer must not be null");
+      OAuth2ClientRegistration registration = OAuth2ClientRegistration.create();
+      customizer.accept(registration);
+      return client(registration.toMap());
     }
 
     /**
