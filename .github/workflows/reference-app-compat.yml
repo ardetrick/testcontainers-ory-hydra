@@ -44,12 +44,11 @@ jobs:
         uses: actions/cache@v6
         with:
           path: /home/runner/.cache/ms-playwright
-          key: ms-playwright-cache-${{ runner.os }}-${{ hashFiles('**/build.gradle.kts') }}
+          key: ms-playwright-chromium-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
       - name: Install Playwright Dependencies
         if: steps.setup-ms-playwright-cache.outputs.cache-hit != 'true'
-        run: |
-          ./gradlew playwright --args="install-deps" --no-daemon
-          ./gradlew playwright --args="install" --no-daemon
+        # Chromium only — the only browser the reference app's tests use.
+        run: ./gradlew playwright --args="install --with-deps chromium" --no-daemon
       # -PtestcontainersOryHydraVersion pins the reference app to the latest
       # published artifact (ignored by Gradle until the reference repo adopts it).
       - name: Build reference app
@@ -89,13 +88,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: /home/runner/.cache/ms-playwright
-          key: ms-playwright-cache-${{ runner.os }}-${{ hashFiles('reference-app/**/build.gradle.kts') }}
+          key: ms-playwright-chromium-${{ runner.os }}-${{ hashFiles('reference-app/gradle/libs.versions.toml') }}
       - name: Install Playwright Dependencies
         if: steps.setup-ms-playwright-cache.outputs.cache-hit != 'true'
         working-directory: reference-app
-        run: |
-          ./gradlew playwright --args="install-deps" --no-daemon
-          ./gradlew playwright --args="install" --no-daemon
+        # Chromium only — the only browser the reference app's tests use.
+        run: ./gradlew playwright --args="install --with-deps chromium" --no-daemon
       # Gradle composite build: --include-build substitutes this checkout for the
       # published com.ardetrick.testcontainers:testcontainers-ory-hydra dependency
       # (matched by group:name; the pinned version is ignored).
