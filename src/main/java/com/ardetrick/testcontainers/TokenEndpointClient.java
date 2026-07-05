@@ -1,7 +1,7 @@
-package com.ardetrick.testcontainers.oauth2;
+package com.ardetrick.testcontainers;
 
-import com.ardetrick.testcontainers.oauth2.FlowResult.OAuthError;
-import com.ardetrick.testcontainers.oauth2.FlowResult.TokenResponse;
+import com.ardetrick.testcontainers.FlowResult.OAuthError;
+import com.ardetrick.testcontainers.FlowResult.TokenResponse;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;

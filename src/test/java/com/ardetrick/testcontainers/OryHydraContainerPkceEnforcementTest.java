@@ -1,8 +1,7 @@
-package com.ardetrick.testcontainers.oauth2;
+package com.ardetrick.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ardetrick.testcontainers.OryHydraContainer;
 import java.net.CookieManager;
 import java.net.URI;
 import java.net.http.HttpClient;

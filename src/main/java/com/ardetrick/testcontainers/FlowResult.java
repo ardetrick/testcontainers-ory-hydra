@@ -1,4 +1,4 @@
-package com.ardetrick.testcontainers.oauth2;
+package com.ardetrick.testcontainers;
 
 import java.util.Map;
 

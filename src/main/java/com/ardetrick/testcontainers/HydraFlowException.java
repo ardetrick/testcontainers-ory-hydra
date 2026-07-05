@@ -1,4 +1,4 @@
-package com.ardetrick.testcontainers.oauth2;
+package com.ardetrick.testcontainers;
 
 /**
  * Thrown when a token request cannot be completed due to a transport- or protocol-level failure (a

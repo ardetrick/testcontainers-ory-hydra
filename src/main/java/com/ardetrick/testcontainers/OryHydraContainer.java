@@ -1,14 +1,12 @@
 package com.ardetrick.testcontainers;
 
-import com.ardetrick.testcontainers.oauth2.AuthorizationCodeFlow;
-import com.ardetrick.testcontainers.oauth2.ClientCredentialsFlow;
-import com.ardetrick.testcontainers.oauth2.IntrospectionResponse;
-import com.ardetrick.testcontainers.oauth2.OpenIdConfiguration;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,9 +48,15 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
     return new Builder();
   }
 
+  private final List<Map<String, Object>> declaredClients;
+
   private OryHydraContainer(
-      DockerImageName imageName, Map<String, String> env, WaitStrategy waitStrategy) {
+      DockerImageName imageName,
+      Map<String, String> env,
+      WaitStrategy waitStrategy,
+      List<Map<String, Object>> declaredClients) {
     super(imageName);
+    this.declaredClients = declaredClients;
     this.withEnv(env);
     this.withExposedPorts(HYDRA_ADMIN_PORT, HYDRA_PUBLIC_PORT);
     // Override the image entrypoint so we can run migration before serving.
@@ -60,6 +64,15 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
         cmd ->
             cmd.withEntrypoint("sh", "-c", "hydra migrate sql -e --yes && hydra serve all --dev"));
     this.waitingFor(waitStrategy);
+  }
+
+  // Runs after the wait strategy: the admin API is ready, so declared client fixtures exist
+  // before start() returns — including for containers shared across test classes.
+  @Override
+  protected void containerIsStarted(InspectContainerResponse containerInfo) {
+    for (Map<String, Object> registration : declaredClients) {
+      OAuth2Clients.createOrReplace(URI.create(adminBaseUriString()), registration);
+    }
   }
 
   /**
@@ -362,6 +375,7 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
     private DockerImageName image = DEFAULT_IMAGE;
     private Map<String, String> env = new HashMap<>();
     private WaitStrategy waitStrategy = DEFAULT_WAIT_STRATEGY;
+    private final List<Map<String, Object>> clients = new ArrayList<>();
 
     /**
      * Creates an empty builder; configure it via the fluent setters before calling {@link
@@ -495,6 +509,24 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
     }
 
     /**
+     * Declares an OAuth 2.0 client that will exist as soon as the container has started — a
+     * declarative fixture, useful when a shared container serves many test classes.
+     *
+     * <p>The map is Hydra's client JSON, passed through verbatim (any field Hydra accepts works;
+     * nested values are allowed). It must contain {@code client_id}: fixtures are upserted, so a
+     * restarted or reused container converges on the declared state instead of failing on
+     * duplicates. May be called multiple times to declare multiple clients.
+     *
+     * @param registration Hydra client JSON as a map, including {@code client_id}
+     * @return this builder for chaining
+     */
+    public Builder client(Map<String, Object> registration) {
+      Objects.requireNonNull(registration, "registration must not be null");
+      this.clients.add(new LinkedHashMap<>(registration));
+      return this;
+    }
+
+    /**
      * Creates the configured Hydra container.
      *
      * <p>The returned container is not yet started. Call {@link OryHydraContainer#start()}
@@ -504,7 +536,7 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
      * @return configured but not yet started {@link OryHydraContainer}
      */
     public OryHydraContainer build() {
-      return new OryHydraContainer(image, new HashMap<>(env), waitStrategy);
+      return new OryHydraContainer(image, new HashMap<>(env), waitStrategy, List.copyOf(clients));
     }
   }
 }

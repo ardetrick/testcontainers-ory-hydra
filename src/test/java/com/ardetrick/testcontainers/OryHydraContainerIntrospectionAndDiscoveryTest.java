@@ -2,7 +2,6 @@ package com.ardetrick.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ardetrick.testcontainers.oauth2.FlowResult;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
