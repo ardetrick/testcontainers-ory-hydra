@@ -25,7 +25,17 @@ spotless {
         // Requires JDK 21+ to run. Gradle must be invoked with JDK 21 even though
         // the java toolchain targets JDK 17 for compilation.
         googleJavaFormat(libs.versions.googleJavaFormat.get())
+        formatAnnotations()
         removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlinGradle {
+        ktlint()
+    }
+    // Whitespace hygiene for the non-code files nothing else formats.
+    format("misc") {
+        target("*.md", "*.yml", ".github/workflows/*.yml", "gradle/*.toml", ".gitignore")
         trimTrailingWhitespace()
         endWithNewline()
     }
@@ -99,7 +109,12 @@ publishing {
     }
     repositories {
         maven {
-            url = layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
+            url =
+                layout.buildDirectory
+                    .dir("staging-deploy")
+                    .get()
+                    .asFile
+                    .toURI()
         }
     }
 }
