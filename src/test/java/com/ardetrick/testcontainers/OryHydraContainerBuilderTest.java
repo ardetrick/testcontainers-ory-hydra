@@ -7,6 +7,23 @@ import org.junit.jupiter.api.Test;
 class OryHydraContainerBuilderTest {
 
   @Test
+  void envRejectsInternalPortOverrides() {
+    var builder = OryHydraContainer.builder();
+    org.assertj.core.api.Assertions.assertThatIllegalArgumentException()
+        .isThrownBy(() -> builder.env("SERVE_ADMIN_PORT", "5555"))
+        .withMessageContaining("SERVE_ADMIN_PORT is not supported");
+    org.assertj.core.api.Assertions.assertThatIllegalArgumentException()
+        .isThrownBy(() -> builder.env("SERVE_PUBLIC_PORT", "5555"))
+        .withMessageContaining("SERVE_PUBLIC_PORT is not supported");
+    org.assertj.core.api.Assertions.assertThatIllegalArgumentException()
+        .isThrownBy(() -> builder.env(java.util.Map.of("SERVE_PUBLIC_PORT", "5555")))
+        .withMessageContaining("SERVE_PUBLIC_PORT is not supported");
+    // Other environment variables remain accepted.
+    builder.env("LOG_LEVEL", "debug");
+    builder.env(java.util.Map.of("STRATEGIES_ACCESS_TOKEN", "jwt"));
+  }
+
+  @Test
   void imageRejectsNull() {
     var builder = OryHydraContainer.builder();
     assertThatNullPointerException()
