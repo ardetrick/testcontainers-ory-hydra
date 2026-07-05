@@ -1,7 +1,12 @@
 # Pre-release compatibility check: builds the reference implementation
-# (ory-hydra-refrence-java) against this library, both as published and as
+# (ory-hydra-refrence-java) against this library, both as last published and as
 # checked out. Manual-dispatch only — a failure here is fixed in the reference
 # repo, so this must never gate merges in this repo.
+#
+# The against-this-checkout job runs in two lint modes:
+#   - lenient red = this checkout actually breaks the reference app.
+#   - strict red with lenient green = this checkout introduces new deprecation
+#     warnings — a migration heads-up for the reference app, nothing broken.
 name: Reference App Compatibility
 
 on:
@@ -11,14 +16,22 @@ permissions:
   contents: read
 
 jobs:
-  against-published-release:
-    name: Reference app vs its pinned published release
+  against-latest-release:
+    name: Reference app vs latest published release
     runs-on: ubuntu-latest
     steps:
       - name: Check out reference implementation
         uses: actions/checkout@v7
         with:
           repository: ardetrick/ory-hydra-refrence-java
+      - name: Resolve latest published release version
+        id: latest-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(gh api repos/ardetrick/testcontainers-ory-hydra/releases/latest --jq .tag_name)
+          echo "Latest release: $TAG"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -36,14 +49,23 @@ jobs:
         run: |
           ./gradlew playwright --args="install-deps" --no-daemon
           ./gradlew playwright --args="install" --no-daemon
+      # -PtestcontainersOryHydraVersion pins the reference app to the latest
+      # published artifact (ignored by Gradle until the reference repo adopts it).
       - name: Build reference app
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        run: ./gradlew build --no-daemon
+        run: >
+          ./gradlew build
+          -PtestcontainersOryHydraVersion=${{ steps.latest-release.outputs.version }}
+          --no-daemon
 
   against-this-checkout:
-    name: Reference app vs this library checkout
+    name: Reference app vs this library checkout (${{ matrix.lint }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lint: [lenient, strict]
     steps:
       - name: Check out reference implementation
         uses: actions/checkout@v7
@@ -79,4 +101,7 @@ jobs:
         working-directory: reference-app
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        run: ./gradlew build --include-build ../library --no-daemon
+        run: >
+          ./gradlew build
+          ${{ matrix.lint == 'lenient' && '-PlenientLint=true' || '' }}
+          --include-build ../library --no-daemon
