@@ -1,0 +1,82 @@
+# Pre-release compatibility check: builds the reference implementation
+# (ory-hydra-refrence-java) against this library, both as published and as
+# checked out. Manual-dispatch only — a failure here is fixed in the reference
+# repo, so this must never gate merges in this repo.
+name: Reference App Compatibility
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  against-published-release:
+    name: Reference app vs its pinned published release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out reference implementation
+        uses: actions/checkout@v7
+        with:
+          repository: ardetrick/ory-hydra-refrence-java
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Setup ms-playwright cache
+        id: setup-ms-playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: /home/runner/.cache/ms-playwright
+          key: ms-playwright-cache-${{ runner.os }}-${{ hashFiles('**/build.gradle.kts') }}
+      - name: Install Playwright Dependencies
+        if: steps.setup-ms-playwright-cache.outputs.cache-hit != 'true'
+        run: |
+          ./gradlew playwright --args="install-deps" --no-daemon
+          ./gradlew playwright --args="install" --no-daemon
+      - name: Build reference app
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: ./gradlew build --no-daemon
+
+  against-this-checkout:
+    name: Reference app vs this library checkout
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out reference implementation
+        uses: actions/checkout@v7
+        with:
+          repository: ardetrick/ory-hydra-refrence-java
+          path: reference-app
+      - name: Check out this library (dispatched ref)
+        uses: actions/checkout@v7
+        with:
+          path: library
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Setup ms-playwright cache
+        id: setup-ms-playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: /home/runner/.cache/ms-playwright
+          key: ms-playwright-cache-${{ runner.os }}-${{ hashFiles('reference-app/**/build.gradle.kts') }}
+      - name: Install Playwright Dependencies
+        if: steps.setup-ms-playwright-cache.outputs.cache-hit != 'true'
+        working-directory: reference-app
+        run: |
+          ./gradlew playwright --args="install-deps" --no-daemon
+          ./gradlew playwright --args="install" --no-daemon
+      # Gradle composite build: --include-build substitutes this checkout for the
+      # published com.ardetrick.testcontainers:testcontainers-ory-hydra dependency
+      # (matched by group:name; the pinned version is ignored).
+      - name: Build reference app against this checkout
+        working-directory: reference-app
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: ./gradlew build --include-build ../library --no-daemon
