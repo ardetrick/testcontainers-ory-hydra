@@ -1,8 +1,12 @@
 buildscript {
     configurations.classpath {
         resolutionStrategy {
-            // Fix https://github.com/jreleaser/jreleaser/issues/1643
-            force("org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r")
+            // Spotless and JReleaser request conflicting JGit majors on the shared buildscript
+            // classpath (https://github.com/jreleaser/jreleaser/issues/1643). Pin JReleaser's own
+            // version: JGit 7 removed the GpgObjectSigner API JReleaser needs, while Spotless only
+            // uses JGit for ratchetFrom, which this build does not use. Guarded by the
+            // "jreleaser classpath smoke check" CI step.
+            force("org.eclipse.jgit:org.eclipse.jgit:5.13.5.202508271544-r")
         }
     }
 }
