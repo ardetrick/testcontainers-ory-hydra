@@ -2,6 +2,8 @@ package com.ardetrick.testcontainers;
 
 import com.ardetrick.testcontainers.oauth2.AuthorizationCodeFlow;
 import com.ardetrick.testcontainers.oauth2.ClientCredentialsFlow;
+import com.ardetrick.testcontainers.oauth2.IntrospectionResponse;
+import com.ardetrick.testcontainers.oauth2.OpenIdConfiguration;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
@@ -187,6 +189,33 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
   }
 
   /**
+   * Fetches and parses the OpenID Connect discovery document from this container.
+   *
+   * <p>Endpoint accessors are re-targeted at the mapped public host and port (the document
+   * advertises Hydra's configured issuer, which cannot know the mapped port), so values like {@link
+   * OpenIdConfiguration#jwksUri()} are directly usable from the test.
+   *
+   * @return the parsed discovery document
+   */
+  public OpenIdConfiguration openIdConfiguration() {
+    return OpenIdConfiguration.fetch(URI.create(publicBaseUriString()));
+  }
+
+  /**
+   * Introspects a token via Hydra's admin API (RFC 7662).
+   *
+   * <p>Hydra issues opaque access tokens by default, so this is how a test asserts a minted token
+   * is real, active, and attributed to the expected subject — the same check a resource server
+   * under test performs.
+   *
+   * @param token the access or refresh token to introspect
+   * @return the introspection response; inactive or unknown tokens return {@code active == false}
+   */
+  public IntrospectionResponse introspect(String token) {
+    return IntrospectionResponse.request(URI.create(adminBaseUriString()), token);
+  }
+
+  /**
    * Builds a convenience link to the OpenID Connect discovery endpoint.
    *
    * @return absolute URI pointing to {@code /.well-known/openid-configuration} on the public
@@ -212,8 +241,8 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    * Builds a convenience link to the OAuth2 authorization endpoint.
    *
    * @return absolute URI pointing to {@code /oauth2/auth} on the public endpoint.
-   * @deprecated resolve {@code authorization_endpoint} from {@link #getOpenIdDiscoveryUri()}
-   *     instead; scheduled for removal.
+   * @deprecated use {@code openIdConfiguration().authorizationEndpoint()} instead; scheduled for
+   *     removal.
    */
   @Deprecated(since = "0.0.6", forRemoval = true)
   public URI getOAuth2AuthUri() {
@@ -224,8 +253,7 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    * Builds a convenience link to the JSON Web Key Set endpoint.
    *
    * @return absolute URI pointing to {@code /.well-known/jwks.json} on the public endpoint.
-   * @deprecated resolve {@code jwks_uri} from {@link #getOpenIdDiscoveryUri()} instead; scheduled
-   *     for removal.
+   * @deprecated use {@code openIdConfiguration().jwksUri()} instead; scheduled for removal.
    */
   @Deprecated(since = "0.0.6", forRemoval = true)
   public URI getPublicJwksUri() {
@@ -237,7 +265,7 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    *
    * @return absolute URI pointing to {@code /.well-known/oauth-authorization-server} on the public
    *     endpoint.
-   * @deprecated use {@link #getOpenIdDiscoveryUri()} or build the path from {@link
+   * @deprecated use {@link #openIdConfiguration()} or build the path from {@link
    *     #publicBaseUriString()}; scheduled for removal.
    */
   @Deprecated(since = "0.0.6", forRemoval = true)
@@ -249,8 +277,8 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    * Builds a convenience link to the OAuth2 token revocation endpoint.
    *
    * @return absolute URI pointing to {@code /oauth2/revoke} on the public endpoint.
-   * @deprecated resolve {@code revocation_endpoint} from {@link #getOpenIdDiscoveryUri()} instead;
-   *     scheduled for removal.
+   * @deprecated use {@code openIdConfiguration().revocationEndpoint()} instead; scheduled for
+   *     removal.
    */
   @Deprecated(since = "0.0.6", forRemoval = true)
   public URI getOAuth2RevokeUri() {
@@ -261,8 +289,8 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    * Builds a convenience link to the OpenID Connect userinfo endpoint.
    *
    * @return absolute URI pointing to {@code /userinfo} on the public endpoint.
-   * @deprecated resolve {@code userinfo_endpoint} from {@link #getOpenIdDiscoveryUri()} instead;
-   *     scheduled for removal.
+   * @deprecated use {@code openIdConfiguration().userinfoEndpoint()} instead; scheduled for
+   *     removal.
    */
   @Deprecated(since = "0.0.6", forRemoval = true)
   public URI getUserInfoUri() {
@@ -273,8 +301,8 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    * Builds a convenience link to the OpenID Connect logout endpoint.
    *
    * @return absolute URI pointing to {@code /oauth2/sessions/logout} on the public endpoint.
-   * @deprecated resolve {@code end_session_endpoint} from {@link #getOpenIdDiscoveryUri()} instead;
-   *     scheduled for removal.
+   * @deprecated use {@code openIdConfiguration().endSessionEndpoint()} instead; scheduled for
+   *     removal.
    */
   @Deprecated(since = "0.0.6", forRemoval = true)
   public URI getOAuth2SessionsLogoutUri() {
@@ -296,7 +324,8 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
    * Builds a convenience link to the admin token introspection endpoint.
    *
    * @return absolute URI pointing to {@code /admin/oauth2/introspect} on the admin endpoint.
-   * @deprecated build the path from {@link #adminBaseUriString()}; scheduled for removal.
+   * @deprecated use {@link #introspect(String)} instead, or build the path from {@link
+   *     #adminBaseUriString()}; scheduled for removal.
    */
   @Deprecated(since = "0.0.6", forRemoval = true)
   public URI getAdminOAuth2IntrospectUri() {

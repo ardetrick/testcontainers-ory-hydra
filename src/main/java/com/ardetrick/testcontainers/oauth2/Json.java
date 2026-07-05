@@ -1,13 +1,16 @@
 package com.ardetrick.testcontainers.oauth2;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Minimal JSON reader for flat objects (no nested objects or arrays).
+ * Minimal JSON reader.
  *
- * <p>Sufficient for OAuth 2.0 token and error responses, whose members are all primitives. Kept
- * dependency-free on purpose; richer parsing can be added if a future feature needs nested values.
+ * <p>Covers the documents this library consumes: OAuth 2.0 token and error responses, RFC 7662
+ * introspection responses ({@code ext}, {@code aud}), and the OpenID Connect discovery document.
+ * Kept dependency-free on purpose.
  */
 final class Json {
 
@@ -19,12 +22,12 @@ final class Json {
   }
 
   /**
-   * Parses a flat JSON object into an insertion-ordered map.
+   * Parses a JSON object into an insertion-ordered map.
    *
    * @param json the JSON text
    * @return the parsed members (values are {@link String}, {@link Long}, {@link Double}, {@link
-   *     Boolean}, or {@code null})
-   * @throws JsonParseException if the text is not a flat JSON object
+   *     Boolean}, {@code null}, {@link List}, or nested {@link Map})
+   * @throws JsonParseException if the text is not a JSON object
    */
   static Map<String, Object> parseObject(String json) {
     Json parser = new Json(json);
@@ -69,9 +72,32 @@ final class Json {
       case '"' -> readString();
       case 't', 'f' -> readBoolean();
       case 'n' -> readNull();
-      case '{', '[' -> throw new JsonParseException("Nested JSON is not supported at index " + pos);
+      case '{' -> object();
+      case '[' -> array();
       default -> readNumber();
     };
+  }
+
+  private List<Object> array() {
+    expect('[');
+    List<Object> list = new ArrayList<>();
+    skipWhitespace();
+    if (peek() == ']') {
+      pos++;
+      return list;
+    }
+    while (true) {
+      skipWhitespace();
+      list.add(readValue());
+      skipWhitespace();
+      char c = nextChar();
+      if (c == ']') {
+        return list;
+      }
+      if (c != ',') {
+        throw new JsonParseException("Expected ',' or ']' at index " + (pos - 1));
+      }
+    }
   }
 
   private String readString() {
