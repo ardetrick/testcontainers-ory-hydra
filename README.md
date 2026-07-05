@@ -252,7 +252,35 @@ Using the `Builder` class, you can configure:
 
 ## Creating OAuth2 Clients
 
-The flow helpers in [Requesting Tokens](#requesting-tokens) register an ephemeral client automatically, so most tests never need to create one explicitly. When a test needs a specific client, register it with `createOAuth2Client`. This uses the Hydra CLI inside the container, so no additional HTTP client or dependencies are needed:
+The flow helpers in [Requesting Tokens](#requesting-tokens) register an ephemeral client automatically, so most tests never need to create one explicitly.
+
+When your application under test has a specific client configured, declare it on the builder — the
+client exists as soon as the container has started. The map is Hydra's own client JSON, passed
+through verbatim, and fixtures are upserted (matched by `client_id`), which makes them safe for a
+shared container serving many test classes — the pattern that keeps suites fast by starting Hydra
+once:
+
+```java
+@Container
+static OryHydraContainer hydra = OryHydraContainer.builder()
+        .client(OAuth2ClientRegistration.create()
+                .clientId("my-app")
+                .clientSecret("my-secret")
+                .grantTypes("authorization_code", "refresh_token")
+                .responseTypes("code")
+                .redirectUris("https://app.example/callback")
+                .scope("openid", "offline_access")
+                .toMap())
+        .build();
+```
+
+`OAuth2ClientRegistration` covers the standard RFC 7591 metadata fields with typed methods;
+anything else — including Hydra-specific fields — can be set with `put(key, value)`/`putAll(map)`,
+which also override typed values explicitly. A plain `Map` works everywhere a registration is
+accepted.
+
+Clients can also be registered after startup with `createOAuth2Client`, which uses the Hydra CLI
+inside the container:
 
 ```java
 hydra.createOAuth2Client("my-client", "my-secret", List.of("http://localhost/callback"));

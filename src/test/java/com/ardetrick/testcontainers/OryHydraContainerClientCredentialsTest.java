@@ -2,7 +2,6 @@ package com.ardetrick.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ardetrick.testcontainers.oauth2.FlowResult;
 import org.junit.jupiter.api.Test;
 
 public class OryHydraContainerClientCredentialsTest {

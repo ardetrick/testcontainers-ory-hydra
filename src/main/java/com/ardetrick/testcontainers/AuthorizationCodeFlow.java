@@ -1,6 +1,6 @@
-package com.ardetrick.testcontainers.oauth2;
+package com.ardetrick.testcontainers;
 
-import com.ardetrick.testcontainers.oauth2.FlowResult.OAuthError;
+import com.ardetrick.testcontainers.FlowResult.OAuthError;
 import java.net.CookieManager;
 import java.net.URI;
 import java.net.http.HttpClient;

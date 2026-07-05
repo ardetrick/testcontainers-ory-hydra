@@ -1,4 +1,4 @@
-package com.ardetrick.testcontainers.oauth2;
+package com.ardetrick.testcontainers;
 
 /** Thrown when a JSON response cannot be parsed. */
 class JsonParseException extends RuntimeException {

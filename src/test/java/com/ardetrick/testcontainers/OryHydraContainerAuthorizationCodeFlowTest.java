@@ -2,7 +2,6 @@ package com.ardetrick.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ardetrick.testcontainers.oauth2.FlowResult;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
