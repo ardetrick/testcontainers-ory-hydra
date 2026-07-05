@@ -120,6 +120,15 @@ method; `publicClient(true)` runs the flow as a secret-less public client
 (`token_endpoint_auth_method: none`, PKCE implied) — the configuration mobile and single-page
 apps use.
 
+The flow instance can also exchange a refresh token it minted (RFC 6749 §6), reusing the same
+client — ephemeral or supplied:
+
+```java
+var flow = hydra.authorizationCodeFlow().scopes("openid", "offline_access");
+var tokens = (FlowResult.TokenResponse) flow.execute();
+var refreshed = (FlowResult.TokenResponse) flow.refresh(tokens.refreshToken());
+```
+
 Because the tokens come from a real Hydra instance, denial paths are real too — a rejected consent
 produces Hydra's actual error redirect, not a fabricated response:
 
