@@ -6,11 +6,16 @@ project:
 
 release:
   github:
+    # Releasing and tagging are performed manually (tag + GitHub Release created after
+    # Maven Central propagation); JReleaser must not touch git — its bundled JGit cannot
+    # authenticate with modern GitHub SSH setups anyway.
     skipRelease: true
+    skipTag: true
 
 signing:
   active: ALWAYS
-  armored: true
+  pgp:
+    armored: true
 
 deploy:
   maven:
