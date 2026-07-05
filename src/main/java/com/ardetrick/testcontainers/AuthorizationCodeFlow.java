@@ -245,6 +245,10 @@ public final class AuthorizationCodeFlow {
     String state = UUID.randomUUID().toString();
     String codeVerifier = usePkce || publicClient ? randomUrlSafe() : null;
     URI current = buildAuthorizeUri(state, codeVerifier == null ? null : s256(codeVerifier));
+    // A path-bearing issuer (Hydra behind a gateway in production) prefixes every issuer-derived
+    // redirect with a path the container does not serve; learn it once so rewrites can strip it.
+    String issuerPathPrefix =
+        OpenIdConfiguration.issuerPathPrefix(OpenIdConfiguration.fetch(publicBaseUri).issuer());
 
     // Each hop is one of: an OAuth error, a login/consent challenge to answer via the admin API,
     // the client callback carrying the code, or another Hydra-bound redirect to follow.
@@ -257,13 +261,13 @@ public final class AuthorizationCodeFlow {
             query.get("error"), query.get("error_description"), query.get("error_uri"));
       }
       if (query.containsKey("login_challenge")) {
-        current = rewrite(answerLogin(admin, query.get("login_challenge")));
+        current = rewrite(answerLogin(admin, query.get("login_challenge")), issuerPathPrefix);
       } else if (query.containsKey("consent_challenge")) {
-        current = rewrite(answerConsent(admin, query.get("consent_challenge")));
+        current = rewrite(answerConsent(admin, query.get("consent_challenge")), issuerPathPrefix);
       } else if (isRedirectUri(location)) {
         return exchangeCode(query, state, codeVerifier);
       } else {
-        current = rewrite(location);
+        current = rewrite(location, issuerPathPrefix);
       }
     }
 
@@ -408,18 +412,8 @@ public final class AuthorizationCodeFlow {
         && Objects.equals(redirect.getPath(), location.getPath());
   }
 
-  // Swaps in the mapped authority while keeping the raw path/query untouched: decoding and
-  // re-encoding could corrupt values that legitimately contain encoded separators.
-  private URI rewrite(URI location) {
-    String query = location.getRawQuery() == null ? "" : "?" + location.getRawQuery();
-    String fragment = location.getRawFragment() == null ? "" : "#" + location.getRawFragment();
-    return URI.create(
-        publicBaseUri.getScheme()
-            + "://"
-            + publicBaseUri.getAuthority()
-            + location.getRawPath()
-            + query
-            + fragment);
+  private URI rewrite(URI location, String issuerPathPrefix) {
+    return OpenIdConfiguration.retarget(location, issuerPathPrefix, publicBaseUri);
   }
 
   private static Map<String, String> parseQuery(String rawQuery) {
