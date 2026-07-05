@@ -263,28 +263,35 @@ once:
 ```java
 @Container
 static OryHydraContainer hydra = OryHydraContainer.builder()
-        .client(OAuth2ClientRegistration.create()
+        .client(client -> client
                 .clientId("my-app")
                 .clientSecret("my-secret")
                 .grantTypes("authorization_code", "refresh_token")
                 .responseTypes("code")
                 .redirectUris("https://app.example/callback")
-                .scope("openid", "offline_access")
-                .toMap())
+                .scope("openid", "offline_access"))
         .build();
 ```
 
-`OAuth2ClientRegistration` covers the standard RFC 7591 metadata fields with typed methods;
-anything else — including Hydra-specific fields — can be set with `put(key, value)`/`putAll(map)`,
-which also override typed values explicitly. A plain `Map` works everywhere a registration is
-accepted.
+The customizer receives an `OAuth2ClientRegistration`, whose typed methods cover the standard
+RFC 7591 metadata fields; anything else — including Hydra-specific fields — can be set with
+`put(key, value)`/`putAll(map)`, which also override typed values explicitly. A plain `Map` of
+Hydra client JSON works everywhere a registration is accepted.
 
-Clients can also be registered after startup with `createOAuth2Client`, which uses the Hydra CLI
-inside the container:
+Clients can also be registered on the running container mid-test — useful when a shared container
+serves many test classes and a class brings its own client. Registration is an upsert (matched by
+`client_id`), so re-runs converge instead of failing on duplicates:
 
 ```java
-hydra.createOAuth2Client("my-client", "my-secret", List.of("http://localhost/callback"));
+hydra.createOrReplaceClient(client -> client
+        .clientId("my-service")
+        .clientSecret("my-secret")
+        .grantTypes("client_credentials")
+        .scope("read"));
 ```
+
+The CLI-based `createOAuth2Client(id, secret, redirectUris)` is deprecated in favor of the
+methods above and scheduled for removal.
 
 ## Convenience URI Methods
 
