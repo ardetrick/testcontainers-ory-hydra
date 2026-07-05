@@ -205,6 +205,128 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
     return URI.create(publicBaseUriString() + "/oauth2/token");
   }
 
+  // The helpers below were released in 0.0.5 and are retained for backwards compatibility only.
+  // Their endpoint URIs are all discoverable via the document at getOpenIdDiscoveryUri().
+
+  /**
+   * Builds a convenience link to the OAuth2 authorization endpoint.
+   *
+   * @return absolute URI pointing to {@code /oauth2/auth} on the public endpoint.
+   * @deprecated resolve {@code authorization_endpoint} from {@link #getOpenIdDiscoveryUri()}
+   *     instead; scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getOAuth2AuthUri() {
+    return URI.create(publicBaseUriString() + "/oauth2/auth");
+  }
+
+  /**
+   * Builds a convenience link to the JSON Web Key Set endpoint.
+   *
+   * @return absolute URI pointing to {@code /.well-known/jwks.json} on the public endpoint.
+   * @deprecated resolve {@code jwks_uri} from {@link #getOpenIdDiscoveryUri()} instead; scheduled
+   *     for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getPublicJwksUri() {
+    return URI.create(publicBaseUriString() + "/.well-known/jwks.json");
+  }
+
+  /**
+   * Builds a convenience link to the OAuth 2.0 authorization server metadata endpoint.
+   *
+   * @return absolute URI pointing to {@code /.well-known/oauth-authorization-server} on the public
+   *     endpoint.
+   * @deprecated use {@link #getOpenIdDiscoveryUri()} or build the path from {@link
+   *     #publicBaseUriString()}; scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getOAuthAuthorizationServerDiscoveryUri() {
+    return URI.create(publicBaseUriString() + "/.well-known/oauth-authorization-server");
+  }
+
+  /**
+   * Builds a convenience link to the OAuth2 token revocation endpoint.
+   *
+   * @return absolute URI pointing to {@code /oauth2/revoke} on the public endpoint.
+   * @deprecated resolve {@code revocation_endpoint} from {@link #getOpenIdDiscoveryUri()} instead;
+   *     scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getOAuth2RevokeUri() {
+    return URI.create(publicBaseUriString() + "/oauth2/revoke");
+  }
+
+  /**
+   * Builds a convenience link to the OpenID Connect userinfo endpoint.
+   *
+   * @return absolute URI pointing to {@code /userinfo} on the public endpoint.
+   * @deprecated resolve {@code userinfo_endpoint} from {@link #getOpenIdDiscoveryUri()} instead;
+   *     scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getUserInfoUri() {
+    return URI.create(publicBaseUriString() + "/userinfo");
+  }
+
+  /**
+   * Builds a convenience link to the OpenID Connect logout endpoint.
+   *
+   * @return absolute URI pointing to {@code /oauth2/sessions/logout} on the public endpoint.
+   * @deprecated resolve {@code end_session_endpoint} from {@link #getOpenIdDiscoveryUri()} instead;
+   *     scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getOAuth2SessionsLogoutUri() {
+    return URI.create(publicBaseUriString() + "/oauth2/sessions/logout");
+  }
+
+  /**
+   * Builds a convenience link to the admin clients endpoint.
+   *
+   * @return absolute URI pointing to {@code /admin/clients} on the admin endpoint.
+   * @deprecated build the path from {@link #adminBaseUriString()}; scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getAdminClientsUri() {
+    return URI.create(adminBaseUriString() + "/admin/clients");
+  }
+
+  /**
+   * Builds a convenience link to the admin token introspection endpoint.
+   *
+   * @return absolute URI pointing to {@code /admin/oauth2/introspect} on the admin endpoint.
+   * @deprecated build the path from {@link #adminBaseUriString()}; scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getAdminOAuth2IntrospectUri() {
+    return URI.create(adminBaseUriString() + "/admin/oauth2/introspect");
+  }
+
+  /**
+   * Builds a convenience link to the admin login request endpoint.
+   *
+   * @return absolute URI pointing to {@code /admin/oauth2/auth/requests/login} on the admin
+   *     endpoint.
+   * @deprecated build the path from {@link #adminBaseUriString()}; scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getAdminLoginRequestUri() {
+    return URI.create(adminBaseUriString() + "/admin/oauth2/auth/requests/login");
+  }
+
+  /**
+   * Builds a convenience link to the admin consent request endpoint.
+   *
+   * @return absolute URI pointing to {@code /admin/oauth2/auth/requests/consent} on the admin
+   *     endpoint.
+   * @deprecated build the path from {@link #adminBaseUriString()}; scheduled for removal.
+   */
+  @Deprecated(since = "0.0.6", forRemoval = true)
+  public URI getAdminConsentRequestUri() {
+    return URI.create(adminBaseUriString() + "/admin/oauth2/auth/requests/consent");
+  }
+
   /** Fluent builder for configuring the Hydra container. */
   public static class Builder {
 
