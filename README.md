@@ -202,6 +202,13 @@ at the container — `getOpenIdDiscoveryUri()` for discovery-based setups, or
 `publicBaseUriString()`/`getOAuth2TokenUri()` for individual endpoints — and feed it a token minted
 by one of the flows above.
 
+A path-bearing issuer — mirroring Hydra behind a production gateway, e.g.
+`urlsSelfIssuer("https://api.example.com/auth")` — is fully supported: minted tokens carry that
+issuer, while the flow driver and the `openIdConfiguration()` accessors strip the gateway's path
+prefix so every URL they produce stays reachable on the mapped port (`raw()` keeps the
+as-advertised values). For full fidelity including the gateway itself, run a proxy container on a
+shared Docker network (see below) and point the issuer at its alias.
+
 #### When your application under test also runs in Docker
 
 Put Hydra and your application on the same Docker network, give Hydra an alias, and set the

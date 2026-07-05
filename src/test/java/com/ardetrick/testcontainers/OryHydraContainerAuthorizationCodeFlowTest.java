@@ -171,6 +171,28 @@ public class OryHydraContainerAuthorizationCodeFlowTest {
   }
 
   @Test
+  public void authorizationCodeFlowWorksWithPathBearingIssuer() {
+    try (var container =
+        OryHydraContainer.builder().urlsSelfIssuer("http://gateway.example/auth-prefix").build()) {
+      container.start();
+
+      // Every issuer-derived redirect carries the /auth-prefix path the container does not
+      // serve; the driver must strip it while following the flow.
+      FlowResult result = container.authorizationCodeFlow().scopes("openid").execute();
+
+      assertThat(result).isInstanceOf(FlowResult.TokenResponse.class);
+      var token = (FlowResult.TokenResponse) result;
+      // The minted token carries the configured issuer — the reason a test mirrors a
+      // gateway-prefixed production issuer in the first place.
+      var idTokenPayload =
+          new String(
+              Base64.getUrlDecoder().decode(token.idToken().split("\\.")[1]),
+              StandardCharsets.UTF_8);
+      assertThat(idTokenPayload).contains("\"iss\":\"http://gateway.example/auth-prefix");
+    }
+  }
+
+  @Test
   public void rejectedLoginReturnsOAuthError() {
     try (var container = OryHydraContainer.builder().build()) {
       container.start();

@@ -13,8 +13,9 @@ import java.util.Map;
  *
  * <p>The document advertises endpoints using Hydra's configured issuer, which cannot know the
  * container's dynamically mapped port — so each endpoint accessor is re-targeted at the mapped
- * public host and port and is directly usable from the test. The as-advertised values are preserved
- * in {@link #raw()}.
+ * public host and port (any issuer path prefix is stripped, since Hydra serves its routes at the
+ * root of its port) and is directly usable from the test. The as-advertised values are preserved in
+ * {@link #raw()}.
  *
  * @param issuer the advertised issuer identifier, as-is (not re-targeted)
  * @param authorizationEndpoint the OAuth 2.0 authorization endpoint, or {@code null} if absent
@@ -79,20 +80,50 @@ public record OpenIdConfiguration(
     return value == null ? null : value.toString();
   }
 
-  // Re-targets an advertised endpoint at the mapped public authority, keeping the raw
-  // path/query untouched (decoding and re-encoding could corrupt encoded separators).
   private static URI endpoint(Map<String, Object> json, String key, URI publicBaseUri) {
     String value = string(json, key);
     if (value == null) {
       return null;
     }
-    URI advertised = URI.create(value);
+    return retarget(URI.create(value), issuerPathPrefix(string(json, "issuer")), publicBaseUri);
+  }
+
+  // Shared by the authorization-code flow driver so the two issuer-to-container translation
+  // layers cannot drift apart.
+
+  /**
+   * Extracts the path prefix of the given issuer, or {@code ""} when the issuer has none — a
+   * path-bearing issuer (e.g. {@code http://gateway.example/hydra}) makes Hydra advertise endpoints
+   * and issue redirects under a prefix it does not itself serve.
+   */
+  static String issuerPathPrefix(String issuer) {
+    if (issuer == null) {
+      return "";
+    }
+    String path = URI.create(issuer).getRawPath();
+    if (path == null || path.isEmpty() || path.equals("/")) {
+      return "";
+    }
+    // Normalize a trailing slash so an issuer of ".../prefix/" strips the same as ".../prefix".
+    return path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+  }
+
+  /**
+   * Re-targets an issuer-derived URI at the mapped public authority: swaps in the authority, strips
+   * the issuer's path prefix, and keeps the raw path/query/fragment otherwise untouched (decoding
+   * and re-encoding could corrupt encoded separators).
+   */
+  static URI retarget(URI advertised, String issuerPathPrefix, URI publicBaseUri) {
+    String path = advertised.getRawPath() == null ? "" : advertised.getRawPath();
+    if (!issuerPathPrefix.isEmpty() && path.startsWith(issuerPathPrefix)) {
+      path = path.substring(issuerPathPrefix.length());
+    }
+    if (!path.startsWith("/")) {
+      path = "/" + path;
+    }
     String query = advertised.getRawQuery() == null ? "" : "?" + advertised.getRawQuery();
+    String fragment = advertised.getRawFragment() == null ? "" : "#" + advertised.getRawFragment();
     return URI.create(
-        publicBaseUri.getScheme()
-            + "://"
-            + publicBaseUri.getAuthority()
-            + advertised.getRawPath()
-            + query);
+        publicBaseUri.getScheme() + "://" + publicBaseUri.getAuthority() + path + query + fragment);
   }
 }
