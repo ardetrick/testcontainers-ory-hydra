@@ -13,8 +13,9 @@ import java.util.Map;
  *
  * <p>The document advertises endpoints using Hydra's configured issuer, which cannot know the
  * container's dynamically mapped port — so each endpoint accessor is re-targeted at the mapped
- * public host and port and is directly usable from the test. The as-advertised values are preserved
- * in {@link #raw()}.
+ * public host and port (any issuer path prefix is stripped, since Hydra serves its routes at the
+ * root of its port) and is directly usable from the test. The as-advertised values are preserved in
+ * {@link #raw()}.
  *
  * @param issuer the advertised issuer identifier, as-is (not re-targeted)
  * @param authorizationEndpoint the OAuth 2.0 authorization endpoint, or {@code null} if absent
@@ -80,19 +81,39 @@ public record OpenIdConfiguration(
   }
 
   // Re-targets an advertised endpoint at the mapped public authority, keeping the raw
-  // path/query untouched (decoding and re-encoding could corrupt encoded separators).
+  // path/query untouched (decoding and re-encoding could corrupt encoded separators) — except
+  // that the configured issuer's path prefix is stripped: a path-bearing issuer (e.g.
+  // http://gateway.example/hydra) makes Hydra advertise endpoints under a prefix it does not
+  // itself serve, so keeping it would produce URIs that 404 against the container.
   private static URI endpoint(Map<String, Object> json, String key, URI publicBaseUri) {
     String value = string(json, key);
     if (value == null) {
       return null;
     }
     URI advertised = URI.create(value);
+    String path = advertised.getRawPath() == null ? "" : advertised.getRawPath();
+    String issuerPath = issuerPath(json);
+    if (!issuerPath.isEmpty() && path.startsWith(issuerPath)) {
+      path = path.substring(issuerPath.length());
+    }
+    if (!path.startsWith("/")) {
+      path = "/" + path;
+    }
     String query = advertised.getRawQuery() == null ? "" : "?" + advertised.getRawQuery();
     return URI.create(
-        publicBaseUri.getScheme()
-            + "://"
-            + publicBaseUri.getAuthority()
-            + advertised.getRawPath()
-            + query);
+        publicBaseUri.getScheme() + "://" + publicBaseUri.getAuthority() + path + query);
+  }
+
+  private static String issuerPath(Map<String, Object> json) {
+    String issuer = string(json, "issuer");
+    if (issuer == null) {
+      return "";
+    }
+    String path = URI.create(issuer).getRawPath();
+    if (path == null || path.isEmpty() || path.equals("/")) {
+      return "";
+    }
+    // Normalize a trailing slash so an issuer of ".../prefix/" strips the same as ".../prefix".
+    return path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
   }
 }

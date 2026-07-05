@@ -36,6 +36,25 @@ public class OryHydraContainerIntrospectionAndDiscoveryTest {
   }
 
   @Test
+  public void openIdConfigurationStripsPathBearingIssuerPrefix() {
+    try (var container =
+        OryHydraContainer.builder().urlsSelfIssuer("http://gateway.example/hydra-prefix").build()) {
+      container.start();
+
+      var config = container.openIdConfiguration();
+
+      // Advertised values carry the issuer's path prefix, which nothing on the container serves...
+      assertThat(config.issuer()).startsWith("http://gateway.example/hydra-prefix");
+      assertThat(String.valueOf(config.raw().get("jwks_uri"))).contains("/hydra-prefix/");
+      // ...so the accessors strip it, staying directly usable against the mapped port.
+      assertThat(config.jwksUri())
+          .hasToString(container.publicBaseUriString() + "/.well-known/jwks.json");
+      assertThat(config.authorizationEndpoint())
+          .hasToString(container.publicBaseUriString() + "/oauth2/auth");
+    }
+  }
+
+  @Test
   @SuppressWarnings("removal") // asserts the deprecated helpers' documented replacements match
   public void openIdConfigurationResolvesEndpointsOnTheMappedPort() {
     try (var container = OryHydraContainer.builder().build()) {
