@@ -135,6 +135,35 @@ var token = (FlowResult.TokenResponse) result;
 String accessToken = token.accessToken();
 ```
 
+#### Validating tokens with introspection
+
+Hydra issues opaque access tokens by default, so resource servers validate them via
+introspection (RFC 7662) — and your test can do the same to assert a minted token is real,
+active, and carries what you configured:
+
+```java
+var introspection = hydra.introspect(token.accessToken());
+introspection.active();          // true
+introspection.subject();         // "user-123"
+introspection.raw().get("ext");  // custom session claims, e.g. {email=user-123@example.com}
+```
+
+Unknown or expired tokens return `active() == false` rather than throwing.
+
+#### Resolving endpoints from the discovery document
+
+`openIdConfiguration()` fetches and parses `/.well-known/openid-configuration`. Because Hydra
+advertises endpoints using its configured issuer — which cannot know the container's dynamically
+mapped port — the typed accessors are re-targeted at the mapped public port and are directly
+usable; the as-advertised values remain available via `raw()`:
+
+```java
+URI jwksUri = hydra.openIdConfiguration().jwksUri();
+URI tokenEndpoint = hydra.openIdConfiguration().tokenEndpoint();
+```
+
+These accessors are the migration target for the URI helpers deprecated since 0.0.6.
+
 #### Testing a real login/consent app
 
 The flow driver above replaces the login/consent app so you don't have to write one. If the thing

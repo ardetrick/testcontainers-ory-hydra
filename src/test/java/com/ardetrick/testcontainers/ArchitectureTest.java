@@ -12,6 +12,8 @@ import com.ardetrick.testcontainers.oauth2.AuthorizationCodeFlow;
 import com.ardetrick.testcontainers.oauth2.ClientCredentialsFlow;
 import com.ardetrick.testcontainers.oauth2.FlowResult;
 import com.ardetrick.testcontainers.oauth2.HydraFlowException;
+import com.ardetrick.testcontainers.oauth2.IntrospectionResponse;
+import com.ardetrick.testcontainers.oauth2.OpenIdConfiguration;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -61,7 +63,9 @@ class ArchitectureTest {
                       AuthorizationCodeFlow.class,
                       ClientCredentialsFlow.class,
                       FlowResult.class,
-                      HydraFlowException.class)))
+                      HydraFlowException.class,
+                      IntrospectionResponse.class,
+                      OpenIdConfiguration.class)))
           .should()
           .notBePublic();
 }
