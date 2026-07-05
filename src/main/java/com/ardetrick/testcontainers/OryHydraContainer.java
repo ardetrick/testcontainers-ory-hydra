@@ -514,13 +514,27 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
     /**
      * Sets an environment variable that will be passed to the Hydra container.
      *
+     * <p>Hydra's internal ports are fixed to the image defaults (public 4444, admin 4445) — the
+     * exposed ports, wait strategy, and mapped-port accessors all assume them — so {@code
+     * SERVE_PUBLIC_PORT} and {@code SERVE_ADMIN_PORT} are rejected rather than allowed to present
+     * as a startup timeout.
+     *
      * @param key environment variable name
      * @param value environment variable value
      * @return this builder for chaining
+     * @throws IllegalArgumentException if {@code key} would change Hydra's internal ports
      */
     public Builder env(String key, String value) {
       Objects.requireNonNull(key, "key must not be null");
       Objects.requireNonNull(value, "value must not be null");
+      if (key.equals("SERVE_PUBLIC_PORT") || key.equals("SERVE_ADMIN_PORT")) {
+        throw new IllegalArgumentException(
+            key
+                + " is not supported: the container fixes Hydra's internal ports to the image"
+                + " defaults (public 4444, admin 4445); the exposed ports, wait strategy, and"
+                + " mapped-port accessors all assume them. Use the mapped ports for access"
+                + " instead.");
+      }
       this.env.put(key, value);
       return this;
     }
@@ -528,12 +542,15 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
     /**
      * Merges a map of environment variables that will be passed to the Hydra container.
      *
+     * <p>Applies the same validation as {@link #env(String, String)} to every entry.
+     *
      * @param env environment variables to add
      * @return this builder for chaining
+     * @throws IllegalArgumentException if any key would change Hydra's internal ports
      */
     public Builder env(Map<String, String> env) {
       Objects.requireNonNull(env, "env must not be null");
-      this.env.putAll(env);
+      env.forEach(this::env);
       return this;
     }
 
