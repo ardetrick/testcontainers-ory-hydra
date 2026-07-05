@@ -1,0 +1,24 @@
+[versions]
+archunit = "1.4.2"
+assertj = "3.27.7"
+freefairLombok = "9.5.0"
+googleJavaFormat = "1.34.1"
+jreleaser = "1.25.0"
+junit = "6.1.1"
+spotless = "8.7.0"
+testcontainers = "2.0.5"
+
+[libraries]
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+testcontainers = { module = "org.testcontainers:testcontainers" }
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+
+[plugins]
+freefair-lombok = { id = "io.freefair.lombok", version.ref = "freefairLombok" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

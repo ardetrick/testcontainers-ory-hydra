@@ -5,7 +5,8 @@ buildscript {
             // classpath (https://github.com/jreleaser/jreleaser/issues/1643). Pin JReleaser's own
             // version: JGit 7 removed the GpgObjectSigner API JReleaser needs, while Spotless only
             // uses JGit for ratchetFrom, which this build does not use. Guarded by the
-            // "jreleaser classpath smoke check" CI step.
+            // "jreleaser classpath smoke check" CI step. Kept as a literal because version-catalog
+            // accessors are not available inside the buildscript block.
             force("org.eclipse.jgit:org.eclipse.jgit:5.13.5.202508271544-r")
         }
     }
@@ -14,16 +15,16 @@ buildscript {
 plugins {
     `maven-publish`
     `java-library`
-    id("io.freefair.lombok") version "9.5.0"
-    id("org.jreleaser") version "1.25.0"
-    id("com.diffplug.spotless") version "8.7.0"
+    alias(libs.plugins.freefair.lombok)
+    alias(libs.plugins.jreleaser)
+    alias(libs.plugins.spotless)
 }
 
 spotless {
     java {
         // Requires JDK 21+ to run. Gradle must be invoked with JDK 21 even though
         // the java toolchain targets JDK 17 for compilation.
-        googleJavaFormat("1.34.1")
+        googleJavaFormat(libs.versions.googleJavaFormat.get())
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
@@ -38,16 +39,16 @@ repositories {
 }
 
 dependencies {
-    api(platform("org.testcontainers:testcontainers-bom:2.0.5"))
-    api("org.testcontainers:testcontainers")
+    api(platform(libs.testcontainers.bom))
+    api(libs.testcontainers)
 
-    testImplementation(platform("org.junit:junit-bom:6.1.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.27.7")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.assertj.core)
+    testImplementation(libs.archunit.junit5)
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 java.toolchain {
@@ -63,19 +64,16 @@ java {
     withSourcesJar()
 }
 
-configure<PublishingExtension> {
+publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            groupId = groupId
-            artifactId = artifactId
-            description = "Test Container for Ory Hydra"
         }
         withType<MavenPublication> {
             pom {
                 packaging = "jar"
                 name.set("testcontainers-ory-hydra")
-                description.set("testcontainers ory hydra")
+                description.set("Testcontainers module for Ory Hydra")
                 url.set("https://github.com/ardetrick/testcontainers-ory-hydra")
                 inceptionYear.set("2023")
                 licenses {
