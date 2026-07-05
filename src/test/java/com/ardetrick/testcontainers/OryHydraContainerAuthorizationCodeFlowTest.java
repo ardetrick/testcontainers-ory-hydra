@@ -98,6 +98,22 @@ public class OryHydraContainerAuthorizationCodeFlowTest {
   }
 
   @Test
+  public void publicClientFlowWithImpliedPkceSucceeds() {
+    try (var container = OryHydraContainer.builder().build()) {
+      container.start();
+
+      FlowResult result =
+          container.authorizationCodeFlow().scopes("openid").publicClient(true).execute();
+
+      assertThat(result).isInstanceOf(FlowResult.TokenResponse.class);
+      var token = (FlowResult.TokenResponse) result;
+      assertThat(token.accessToken()).isNotBlank();
+      // The secret-less client's token is real and active.
+      assertThat(container.introspect(token.accessToken()).active()).isTrue();
+    }
+  }
+
+  @Test
   public void authorizationCodeFlowWithPreRegisteredClientSucceeds() throws Exception {
     try (var container = OryHydraContainer.builder().build()) {
       container.start();

@@ -27,7 +27,11 @@ final class TokenEndpointClient {
     return post(tokenEndpoint, form.toString(), clientId, clientSecret);
   }
 
-  /** Authorization-code exchange (RFC 6749 §4.1.3) using {@code client_secret_basic}. */
+  /**
+   * Authorization-code exchange (RFC 6749 §4.1.3) using {@code client_secret_basic}, or — when
+   * {@code clientSecret} is {@code null} (public client) — {@code client_id} in the request body
+   * with no client authentication.
+   */
   static FlowResult authorizationCode(
       URI tokenEndpoint,
       String clientId,
@@ -46,22 +50,27 @@ final class TokenEndpointClient {
 
   private static FlowResult post(
       URI tokenEndpoint, String form, String clientId, String clientSecret) {
-    // RFC 6749 §2.3.1: client id and secret are form-urlencoded before being concatenated
-    // and Base64-encoded, so secrets containing ':' or '%' authenticate correctly.
-    String credentials =
-        Base64.getEncoder()
-            .encodeToString(
-                (Http.encode(clientId) + ":" + Http.encode(clientSecret))
-                    .getBytes(StandardCharsets.UTF_8));
+    HttpRequest.Builder request =
+        HttpRequest.newBuilder(tokenEndpoint)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header("Accept", "application/json");
+    if (clientSecret == null) {
+      // Public client (RFC 6749 §2.1): no authentication, client_id in the request body.
+      form = form + "&client_id=" + Http.encode(clientId);
+    } else {
+      // RFC 6749 §2.3.1: client id and secret are form-urlencoded before being concatenated
+      // and Base64-encoded, so secrets containing ':' or '%' authenticate correctly.
+      String credentials =
+          Base64.getEncoder()
+              .encodeToString(
+                  (Http.encode(clientId) + ":" + Http.encode(clientSecret))
+                      .getBytes(StandardCharsets.UTF_8));
+      request.header("Authorization", "Basic " + credentials);
+    }
     HttpResponse<String> response =
         Http.send(
             HttpClient.newHttpClient(),
-            HttpRequest.newBuilder(tokenEndpoint)
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("Authorization", "Basic " + credentials)
-                .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(form))
-                .build());
+            request.POST(HttpRequest.BodyPublishers.ofString(form)).build());
 
     Map<String, Object> json;
     try {

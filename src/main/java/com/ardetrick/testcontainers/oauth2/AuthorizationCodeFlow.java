@@ -50,6 +50,7 @@ public final class AuthorizationCodeFlow {
   private String rejectConsentError;
   private String rejectConsentDescription;
   private boolean usePkce = false;
+  private boolean publicClient = false;
   private String redirectUri = DEFAULT_REDIRECT_URI;
 
   /**
@@ -209,6 +210,22 @@ public final class AuthorizationCodeFlow {
   }
 
   /**
+   * Runs the flow as a public client (RFC 6749 §2.1) — no client secret, {@code
+   * token_endpoint_auth_method: none} — the configuration used by mobile and single-page apps.
+   *
+   * <p>Implies PKCE (public clients must use it, RFC 8252 §8.1): the authorization request carries
+   * an S256 challenge and the token exchange sends {@code client_id} in the request body instead of
+   * HTTP Basic authentication. Must not be combined with {@link #clientSecret(String)}.
+   *
+   * @param enabled whether to run as a public client
+   * @return this flow
+   */
+  public AuthorizationCodeFlow publicClient(boolean enabled) {
+    this.publicClient = enabled;
+    return this;
+  }
+
+  /**
    * Runs the flow and returns the result.
    *
    * @return a {@link FlowResult.TokenResponse} on success, or a {@link OAuthError} if Hydra
@@ -226,7 +243,7 @@ public final class AuthorizationCodeFlow {
     resolveClient(admin);
 
     String state = UUID.randomUUID().toString();
-    String codeVerifier = usePkce ? randomUrlSafe() : null;
+    String codeVerifier = usePkce || publicClient ? randomUrlSafe() : null;
     URI current = buildAuthorizeUri(state, codeVerifier == null ? null : s256(codeVerifier));
 
     // Each hop is one of: an OAuth error, a login/consent challenge to answer via the admin API,
@@ -302,28 +319,35 @@ public final class AuthorizationCodeFlow {
   }
 
   private void resolveClient(AdminClient admin) {
+    if (publicClient && clientSecret != null) {
+      throw new HydraFlowException("public clients have no client secret");
+    }
     if (clientId != null) {
-      if (clientSecret == null) {
+      if (clientSecret == null && !publicClient) {
         throw new HydraFlowException("clientSecret must be set when clientId is provided");
       }
       return;
     }
     String id = "tc-" + UUID.randomUUID();
-    String secret = UUID.randomUUID().toString();
     Map<String, Object> registration = new LinkedHashMap<>();
     registration.put("client_id", id);
-    registration.put("client_secret", secret);
     registration.put("grant_types", List.of("authorization_code", "refresh_token"));
     registration.put("response_types", List.of("code"));
     registration.put("redirect_uris", List.of(redirectUri));
     registration.put("scope", String.join(" ", scopes));
-    registration.put("token_endpoint_auth_method", "client_secret_basic");
+    if (publicClient) {
+      registration.put("token_endpoint_auth_method", "none");
+    } else {
+      String secret = UUID.randomUUID().toString();
+      registration.put("client_secret", secret);
+      registration.put("token_endpoint_auth_method", "client_secret_basic");
+      this.clientSecret = secret;
+    }
     if (!audience.isEmpty()) {
       registration.put("audience", new ArrayList<>(audience));
     }
     admin.createClient(registration);
     this.clientId = id;
-    this.clientSecret = secret;
   }
 
   private Map<String, Object> session() {

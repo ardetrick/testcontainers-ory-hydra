@@ -116,7 +116,9 @@ String refreshToken = token.refreshToken(); // present because "offline_access" 
 
 Options: `audience(...)` requests token audiences; `accessTokenClaims(...)`/`idTokenClaims(...)`
 target one token's session claims instead of both; `usePkce(true)` enables PKCE with the S256
-method.
+method; `publicClient(true)` runs the flow as a secret-less public client
+(`token_endpoint_auth_method: none`, PKCE implied) — the configuration mobile and single-page
+apps use.
 
 Because the tokens come from a real Hydra instance, denial paths are real too — a rejected consent
 produces Hydra's actual error redirect, not a fabricated response:
