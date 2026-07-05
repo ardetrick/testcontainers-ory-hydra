@@ -193,6 +193,27 @@ at the container — `getOpenIdDiscoveryUri()` for discovery-based setups, or
 `publicBaseUriString()`/`getOAuth2TokenUri()` for individual endpoints — and feed it a token minted
 by one of the flows above.
 
+#### When your application under test also runs in Docker
+
+Put Hydra and your application on the same Docker network, give Hydra an alias, and set the
+issuer to the alias-based URL so in-network consumers resolve endpoints they can actually reach:
+
+```java
+Network network = Network.newNetwork();
+OryHydraContainer hydra = OryHydraContainer.builder()
+        .urlsSelfIssuer("http://hydra:4444")
+        .build()
+        .withNetwork(network)
+        .withNetworkAliases("hydra");
+```
+
+Inside the network, your application reaches Hydra at `http://hydra:4444` (public) and
+`http://hydra:4445` (admin) — the internal ports, no mapping involved. From the host, everything
+above keeps working unchanged: the flow helpers rewrite Hydra's redirects to the mapped port
+regardless of the configured issuer, so you can mint a token on the host and have your dockerized
+resource server validate it in-network. This setup is guarded by
+`OryHydraContainerDockerNetworkTest`.
+
 ### Custom Configuration
 
 ```java
