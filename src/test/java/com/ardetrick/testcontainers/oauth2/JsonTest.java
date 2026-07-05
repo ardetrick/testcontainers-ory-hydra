@@ -3,6 +3,8 @@ package com.ardetrick.testcontainers.oauth2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class JsonTest {
@@ -40,8 +42,26 @@ class JsonTest {
   }
 
   @Test
-  void rejectsNestedValues() {
-    assertThatThrownBy(() -> Json.parseObject("{\"a\":{\"b\":1}}"))
+  void parsesNestedObjectsAndArrays() {
+    var parsed =
+        Json.parseObject(
+            "{\"ext\":{\"dept\":\"eng\",\"level\":3},"
+                + "\"aud\":[\"https://api.example\",\"https://other.example\"],"
+                + "\"grant_types_supported\":[],"
+                + "\"deep\":[{\"a\":[1,2]},{\"b\":null}]}");
+
+    assertThat(parsed.get("ext")).isEqualTo(Map.of("dept", "eng", "level", 3L));
+    assertThat(parsed.get("aud"))
+        .isEqualTo(List.of("https://api.example", "https://other.example"));
+    assertThat(parsed.get("grant_types_supported")).isEqualTo(List.of());
+    assertThat(parsed.get("deep"))
+        .isEqualTo(
+            List.of(Map.of("a", List.of(1L, 2L)), java.util.Collections.singletonMap("b", null)));
+  }
+
+  @Test
+  void rejectsUnterminatedArray() {
+    assertThatThrownBy(() -> Json.parseObject("{\"a\":[1,2"))
         .isInstanceOf(JsonParseException.class);
   }
 
