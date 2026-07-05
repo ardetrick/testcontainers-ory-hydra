@@ -35,6 +35,25 @@ for that. Also out of scope is fabricating invalid tokens or error responses: re
 expired-on-demand tokens are a mock server's job (e.g.
 [navikt/mock-oauth2-server](https://github.com/navikt/mock-oauth2-server)).
 
+## Why a real Hydra instead of a mock?
+
+OAuth2 and OIDC servers implement different subsets of the specs, with different defaults and
+different error responses. A mock checks your code against your own reading of the spec; a real
+container checks it against the server you actually run. Some specifics:
+
+* Hydra issues opaque access tokens by default, validated through the introspection endpoint
+  rather than local JWT verification. A mock that mints JWTs can pass a code path that never
+  runs in production.
+* If you run Hydra, you wrote a login/consent app that speaks Hydra's admin challenge API.
+  Generic mocks don't model that API, so that integration goes untested.
+* The container pins a Hydra version, so behavior changes show up when you bump the image
+  instead of in production.
+
+A mock is still the right tool in some cases: a plain resource server that only validates JWTs
+from a compliant issuer, or tests that need forged, malformed, or expired tokens, which real
+Hydra will never produce (see [Scope](#scope)). For those, use
+[navikt/mock-oauth2-server](https://github.com/navikt/mock-oauth2-server).
+
 ## Usage
 
 ### Dependency

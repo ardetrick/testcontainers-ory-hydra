@@ -45,6 +45,14 @@ Code is formatted with [google-java-format](https://github.com/google/google-jav
 
 Lombok is available via the `io.freefair.lombok` Gradle plugin. Use Lombok annotations to reduce boilerplate where appropriate.
 
+## Writing Style
+
+Proofread prose (README, javadoc, comments, commit messages) for common AI language tells and
+remove them: punchy sentence fragments, stock flourishes ("earns its keep", "silently rots"),
+"Concretely:"/"Notably:" throat-clearing, bold-label bullets where plain sentences work, heavy
+em-dash use, and closing summaries that restate the list just given. Prefer the plain voice of a
+maintainer writing quickly.
+
 ## Commit Conventions
 
 Follow [Conventional Commits](https://www.conventionalcommits.org). Format: `<type>(<optional scope>): <description>`. Common types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`.
