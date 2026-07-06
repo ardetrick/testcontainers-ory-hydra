@@ -265,7 +265,7 @@ var hydra = OryHydraContainer.builder()
 
 Using the `Builder` class, you can configure:
 
-* `image(DockerImageName)`: Override the Docker image (default: `oryd/hydra:v25.4.0`).
+* `image(DockerImageName)`: Override the Docker image (default: `oryd/hydra:v26.2.0`).
 * `urlsLogin(String)`: Set the login URL (`URLS_LOGIN`). Defaults to a non-resolvable sentinel host; the authorization-code flow helper intercepts login redirects by their challenge parameter, so the sentinel is never contacted.
 * `urlsConsent(String)`: Set the consent URL (`URLS_CONSENT`). Defaults to a non-resolvable sentinel host, as above.
 * `urlsSelfIssuer(String)`: Set the self-issuer URL (`URLS_SELF_ISSUER`).
