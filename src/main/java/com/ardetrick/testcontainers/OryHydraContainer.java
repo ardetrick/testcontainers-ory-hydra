@@ -27,7 +27,7 @@ public class OryHydraContainer extends GenericContainer<OryHydraContainer> {
 
   static final int HYDRA_ADMIN_PORT = 4445;
   static final int HYDRA_PUBLIC_PORT = 4444;
-  static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("oryd/hydra:v25.4.0");
+  static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("oryd/hydra:v26.2.0");
   static final String DEFAULT_DSN = "sqlite:///tmp/db.sqlite?_fk=true";
   static final String DEFAULT_SECRETS_SYSTEM = "testcontainers-ory-hydra-secret";
   // Non-resolvable sentinels: the authorization-code flow intercepts the login/consent redirects by
