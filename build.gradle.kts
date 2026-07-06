@@ -7,7 +7,7 @@ buildscript {
             // uses JGit for ratchetFrom, which this build does not use. Guarded by the
             // "jreleaser classpath smoke check" CI step. Kept as a literal because version-catalog
             // accessors are not available inside the buildscript block.
-            force("org.eclipse.jgit:org.eclipse.jgit:5.13.5.202508271544-r")
+            force("org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r")
         }
     }
 }
