@@ -4,7 +4,7 @@ assertj = "3.27.7"
 freefairLombok = "9.5.0"
 googleJavaFormat = "1.34.1"
 jreleaser = "1.25.0"
-junit = "6.1.1"
+junit = "6.1.2"
 spotless = "8.8.0"
 testcontainers = "2.0.5"
 
