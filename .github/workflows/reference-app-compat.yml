@@ -38,7 +38,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
       # Key the browser cache on the Playwright version alone so unrelated dependency
       # bumps in the reference app's catalog do not trigger a browser reinstall.
       - name: Resolve Playwright version
@@ -87,7 +87,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
       # Key the browser cache on the Playwright version alone so unrelated dependency
       # bumps in the reference app's catalog do not trigger a browser reinstall.
       - name: Resolve Playwright version
