@@ -24,7 +24,7 @@ jobs:
       # JDK 21 is required to run google-java-format via Spotless.
       # The Gradle java toolchain targets JDK 17 for compilation.
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: '21'
           distribution: 'temurin'
