@@ -1,7 +1,7 @@
 [versions]
 archunit = "1.5.0"
 assertj = "3.27.7"
-freefairLombok = "9.5.0"
+freefairLombok = "9.7.0"
 googleJavaFormat = "1.34.1"
 jreleaser = "1.26.0"
 junit = "6.1.3"
