@@ -1,5 +1,5 @@
 [versions]
-archunit = "1.5.0"
+archunit = "1.5.1"
 assertj = "3.27.7"
 freefairLombok = "9.7.0"
 googleJavaFormat = "1.34.1"
